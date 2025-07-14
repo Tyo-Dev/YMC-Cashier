@@ -1,3 +1,4 @@
 <?php
-echo"hallo "
+header('Location: auth/login.php');
+exit;
 ?>
