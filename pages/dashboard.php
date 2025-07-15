@@ -1,244 +1,192 @@
 <?php
 session_start();
-require_once '../config/koneksi.php';
-require_once '../includes/functions.php';
 
-// Cek apakah user sudah login
-if (!isLoggedIn()) {
+// Redirect jika belum login
+if (!isset($_SESSION['pengguna'])) {
     header('Location: ../auth/login.php');
-    exit;
+    exit();
 }
 
-$user = $_SESSION['pengguna'];
-$stats = getDashboardStats($pdo);
+// Ambil data pengguna dari session
+$pengguna = $_SESSION['pengguna'];
+$user_level = $pengguna['level'];
+$nama_user = htmlspecialchars($pengguna['nama_user']);
 
-// Mendapatkan data untuk chart (penjualan 7 hari terakhir)
-$stmt = $pdo->prepare("
-    SELECT DATE(tanggal) as tanggal, SUM(total_harga_jual) as total 
-    FROM penjualan 
-    WHERE tanggal >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) 
-    GROUP BY DATE(tanggal) 
-    ORDER BY tanggal
-");
-$stmt->execute();
-$chart_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+// Data dummy untuk demonstrasi - Ganti dengan query database Anda
+function get_dummy_data($level) {
+    if ($level == 'admin') {
+        return [
+            'penjualan_hari_ini' => 'Rp 1.250.000',
+            'transaksi_hari_ini' => 32,
+            'stok_kritis' => 8,
+            'aktivitas_terbaru' => [
+                ['jenis' => 'Penjualan', 'deskripsi' => 'Transaksi #INV-001 oleh Kasir A', 'waktu' => '5 menit lalu'],
+                ['jenis' => 'Stok', 'deskripsi' => 'Barang "Kopi Robusta" ditambahkan', 'waktu' => '30 menit lalu'],
+                ['jenis' => 'Pengguna', 'deskripsi' => 'User "Kasir B" berhasil dibuat', 'waktu' => '1 jam lalu'],
+            ]
+        ];
+    } elseif ($level == 'kasir') {
+        return [
+            'penjualan_anda_hari_ini' => 'Rp 450.000',
+            'transaksi_anda_hari_ini' => 12,
+            'aktivitas_terbaru' => [
+                ['jenis' => 'Penjualan', 'deskripsi' => 'Transaksi #INV-008 sebesar Rp 75.000', 'waktu' => '2 menit lalu'],
+                ['jenis' => 'Penjualan', 'deskripsi' => 'Transaksi #INV-007 sebesar Rp 30.000', 'waktu' => '15 menit lalu'],
+            ]
+        ];
+    } elseif ($level == 'pemilik') {
+        return [
+            'pendapatan_bulan_ini' => 'Rp 25.800.000',
+            'laba_kotor' => 'Rp 8.200.000',
+            'barang_terlaris' => 'Espresso Single',
+            'sales_chart_data' => [65, 59, 80, 81, 56, 55, 40] // Data untuk 7 hari terakhir
+        ];
+    }
+    return [];
+}
+$data = get_dummy_data($user_level);
 
-// Produk dengan stok menipis
-$stmt = $pdo->prepare("
-    SELECT b.*, k.kategori_barang 
-    FROM barang b 
-    JOIN kategori k ON b.id_kategori = k.id_kategori 
-    WHERE b.stok <= 10 
-    ORDER BY b.stok ASC 
-    LIMIT 5
-");
-$stmt->execute();
-$stok_menipis = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Sistem Kasir YMC</title>
+    <title>Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Anda bisa menambahkan custom style di sini jika perlu */
+        .card-hover-effect {
+            @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
+        }
+    </style>
 </head>
-<body class="bg-gray-100">
-    <!-- Navigation -->
-    <nav class="bg-indigo-600 text-white p-4">
-        <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-xl font-bold">Sistem Kasir YMC</h1>
-            <div class="flex items-center space-x-4">
-                <span>Selamat datang, <?= htmlspecialchars($user['nama_user']) ?></span>
-                <span class="bg-indigo-800 px-2 py-1 rounded text-sm"><?= ucfirst($user['level']) ?></span>
-                <a href="../auth/logout.php" class="bg-red-500 hover:bg-red-600 px-3 py-1 rounded">Logout</a>
-            </div>
-        </div>
-    </nav>
+<body class="bg-slate-50">
 
-    <div class="container mx-auto p-6">
-        <!-- Menu Navigation -->
-        <div class="mb-8">
-            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                <a href="transaksi_penjualan.php" class="bg-green-500 hover:bg-green-600 text-white p-4 rounded-lg text-center">
-                    <i class="fas fa-shopping-cart text-2xl mb-2"></i>
-                    <p>Transaksi Penjualan</p>
-                </a>
-                
-                <?php if ($user['level'] === 'admin'): ?>
-                <a href="data_barang.php" class="bg-blue-500 hover:bg-blue-600 text-white p-4 rounded-lg text-center">
-                    <i class="fas fa-box text-2xl mb-2"></i>
-                    <p>Data Barang</p>
-                </a>
-                
-                <a href="data_kategori.php" class="bg-purple-500 hover:bg-purple-600 text-white p-4 rounded-lg text-center">
-                    <i class="fas fa-tags text-2xl mb-2"></i>
-                    <p>Data Kategori</p>
-                </a>
-                
-                <a href="data_pemasok.php" class="bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-lg text-center">
-                    <i class="fas fa-truck text-2xl mb-2"></i>
-                    <p>Data Pemasok</p>
-                </a>
-                
-                <a href="data_pengguna.php" class="bg-pink-500 hover:bg-pink-600 text-white p-4 rounded-lg text-center">
-                    <i class="fas fa-users text-2xl mb-2"></i>
-                    <p>Data Pengguna</p>
-                </a>
-                
-                <a href="transaksi_pembelian.php" class="bg-indigo-500 hover:bg-indigo-600 text-white p-4 rounded-lg text-center">
-                    <i class="fas fa-shopping-bag text-2xl mb-2"></i>
-                    <p>Pembelian Barang</p>
-                </a>
-                
-                <a href="biaya_operasional.php" class="bg-red-500 hover:bg-red-600 text-white p-4 rounded-lg text-center">
-                    <i class="fas fa-money-bill text-2xl mb-2"></i>
-                    <p>Biaya Operasional</p>
-                </a>
-                <?php endif; ?>
-                
-                <?php if ($user['level'] === 'pemilik' || $user['level'] === 'admin'): ?>
-                <a href="laporan_penjualan.php" class="bg-teal-500 hover:bg-teal-600 text-white p-4 rounded-lg text-center">
-                    <i class="fas fa-chart-line text-2xl mb-2"></i>
-                    <p>Laporan Penjualan</p>
-                </a>
-                
-                <a href="laporan_pembelian.php" class="bg-yellow-500 hover:bg-yellow-600 text-white p-4 rounded-lg text-center">
-                    <i class="fas fa-file-invoice text-2xl mb-2"></i>
-                    <p>Laporan Pembelian</p>
-                </a>
-                
-                <a href="laporan_laba_rugi.php" class="bg-gray-500 hover:bg-gray-600 text-white p-4 rounded-lg text-center">
-                    <i class="fas fa-calculator text-2xl mb-2"></i>
-                    <p>Laporan Laba Rugi</p>
-                </a>
-                <?php endif; ?>
-            </div>
-        </div>
+    <div class="flex">
+        <?php include '../includes/sidebar.php'; ?>
 
-        <!-- Statistics Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div class="bg-white p-6 rounded-lg shadow">
-                <div class="flex items-center">
-                    <div class="bg-green-500 text-white p-3 rounded-full">
-                        <i class="fas fa-money-bill-wave"></i>
-                    </div>
-                    <div class="ml-4">
-                        <h3 class="text-gray-500 text-sm">Penjualan Hari Ini</h3>
-                        <p class="text-2xl font-bold"><?= formatRupiah($stats['penjualan_hari_ini']) ?></p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="bg-white p-6 rounded-lg shadow">
-                <div class="flex items-center">
-                    <div class="bg-blue-500 text-white p-3 rounded-full">
-                        <i class="fas fa-calendar-month"></i>
-                    </div>
-                    <div class="ml-4">
-                        <h3 class="text-gray-500 text-sm">Penjualan Bulan Ini</h3>
-                        <p class="text-2xl font-bold"><?= formatRupiah($stats['penjualan_bulan_ini']) ?></p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="bg-white p-6 rounded-lg shadow">
-                <div class="flex items-center">
-                    <div class="bg-purple-500 text-white p-3 rounded-full">
-                        <i class="fas fa-box"></i>
-                    </div>
-                    <div class="ml-4">
-                        <h3 class="text-gray-500 text-sm">Total Barang</h3>
-                        <p class="text-2xl font-bold"><?= $stats['total_barang'] ?></p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="bg-white p-6 rounded-lg shadow">
-                <div class="flex items-center">
-                    <div class="bg-orange-500 text-white p-3 rounded-full">
-                        <i class="fas fa-warehouse"></i>
-                    </div>
-                    <div class="ml-4">
-                        <h3 class="text-gray-500 text-sm">Total Stok</h3>
-                        <p class="text-2xl font-bold"><?= $stats['total_stok'] ?></p>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <main class="ml-20 w-full min-h-screen p-8">
+            <header class="mb-8">
+                <h1 class="text-4xl font-bold text-slate-800">Selamat Datang, <?= $nama_user ?>!</h1>
+                <p class="text-slate-500 mt-1">Berikut adalah ringkasan aktivitas untuk Anda hari ini.</p>
+            </header>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- Chart Penjualan -->
-            <div class="bg-white p-6 rounded-lg shadow">
-                <h3 class="text-lg font-semibold mb-4">Penjualan 7 Hari Terakhir</h3>
-                <canvas id="salesChart" width="400" height="200"></canvas>
-            </div>
-            
-            <!-- Stok Menipis -->
-            <div class="bg-white p-6 rounded-lg shadow">
-                <h3 class="text-lg font-semibold mb-4">Stok Menipis</h3>
-                <div class="space-y-3">
-                    <?php if (empty($stok_menipis)): ?>
-                        <p class="text-gray-500">Semua stok barang aman</p>
-                    <?php else: ?>
-                        <?php foreach ($stok_menipis as $item): ?>
-                            <div class="flex justify-between items-center p-3 bg-red-50 rounded">
-                                <div>
-                                    <p class="font-medium"><?= htmlspecialchars($item['nama_barang']) ?></p>
-                                    <p class="text-sm text-gray-500"><?= htmlspecialchars($item['kategori_barang']) ?></p>
-                                </div>
-                                <span class="bg-red-500 text-white px-2 py-1 rounded text-sm">
-                                    <?= $item['stok'] ?> <?= $item['satuan_barang'] ?>
-                                </span>
+            <?php if ($user_level == 'admin'): ?>
+                <div class="space-y-8">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div class="bg-white p-6 rounded-xl shadow-md flex items-center gap-6">
+                            <div class="bg-teal-100 text-teal-600 p-4 rounded-full"><i class="fas fa-dollar-sign fa-2x"></i></div>
+                            <div>
+                                <p class="text-sm text-slate-500">Penjualan Hari Ini</p>
+                                <p class="text-2xl font-bold text-slate-800"><?= $data['penjualan_hari_ini'] ?></p>
                             </div>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-md flex items-center gap-6">
+                            <div class="bg-lime-100 text-lime-600 p-4 rounded-full"><i class="fas fa-exchange-alt fa-2x"></i></div>
+                            <div>
+                                <p class="text-sm text-slate-500">Transaksi Hari Ini</p>
+                                <p class="text-2xl font-bold text-slate-800"><?= $data['transaksi_hari_ini'] ?></p>
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-md flex items-center gap-6">
+                            <div class="bg-red-100 text-red-600 p-4 rounded-full"><i class="fas fa-exclamation-triangle fa-2x"></i></div>
+                            <div>
+                                <p class="text-sm text-slate-500">Stok Barang Kritis</p>
+                                <p class="text-2xl font-bold text-slate-800"><?= $data['stok_kritis'] ?> Item</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-semibold text-slate-800 mb-4">Akses Cepat</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <a href="barang.php" class="bg-white p-6 rounded-xl shadow-md text-center card-hover-effect">
+                                <i class="fas fa-box-open fa-3x text-green-600 mb-4"></i>
+                                <p class="font-semibold text-slate-700">Kelola Barang</p>
+                            </a>
+                            <a href="laporan_penjualan.php" class="bg-white p-6 rounded-xl shadow-md text-center card-hover-effect">
+                                <i class="fas fa-chart-line fa-3x text-green-600 mb-4"></i>
+                                <p class="font-semibold text-slate-700">Lihat Laporan</p>
+                            </a>
+                             <a href="penjualan.php" class="bg-white p-6 rounded-xl shadow-md text-center card-hover-effect">
+                                <i class="fas fa-cash-register fa-3x text-green-600 mb-4"></i>
+                                <p class="font-semibold text-slate-700">Halaman Kasir</p>
+                            </a>
+                            <a href="pengaturan.php" class="bg-white p-6 rounded-xl shadow-md text-center card-hover-effect">
+                                <i class="fas fa-users-cog fa-3x text-green-600 mb-4"></i>
+                                <p class="font-semibold text-slate-700">Kelola Pengguna</p>
+                            </a>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
+
+            <?php elseif ($user_level == 'kasir'): ?>
+                <div class="space-y-8">
+                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white p-6 rounded-xl shadow-md flex items-center gap-6">
+                            <div class="bg-teal-100 text-teal-600 p-4 rounded-full"><i class="fas fa-wallet fa-2x"></i></div>
+                            <div>
+                                <p class="text-sm text-slate-500">Penjualan Anda Hari Ini</p>
+                                <p class="text-2xl font-bold text-slate-800"><?= $data['penjualan_anda_hari_ini'] ?></p>
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-md flex items-center gap-6">
+                            <div class="bg-lime-100 text-lime-600 p-4 rounded-full"><i class="fas fa-receipt fa-2x"></i></div>
+                            <div>
+                                <p class="text-sm text-slate-500">Transaksi Anda Hari Ini</p>
+                                <p class="text-2xl font-bold text-slate-800"><?= $data['transaksi_anda_hari_ini'] ?></p>
+                            </div>
+                        </div>
+                    </div>
+                    <a href="penjualan.php" class="bg-gradient-to-br from-green-500 to-teal-600 text-white flex items-center justify-center gap-4 p-10 rounded-xl shadow-lg card-hover-effect">
+                        <i class="fas fa-cash-register fa-4x"></i>
+                        <div>
+                            <p class="text-3xl font-bold">Mulai Transaksi Baru</p>
+                            <p class="opacity-80">Klik di sini untuk membuka halaman kasir</p>
+                        </div>
+                    </a>
+                </div>
+
+            <?php elseif ($user_level == 'pemilik'): ?>
+                <div class="space-y-8">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div class="bg-white p-6 rounded-xl shadow-md flex items-center gap-6">
+                            <div class="bg-green-100 text-green-600 p-4 rounded-full"><i class="fas fa-calendar-alt fa-2x"></i></div>
+                            <div>
+                                <p class="text-sm text-slate-500">Pendapatan Bulan Ini</p>
+                                <p class="text-2xl font-bold text-slate-800"><?= $data['pendapatan_bulan_ini'] ?></p>
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-md flex items-center gap-6">
+                            <div class="bg-teal-100 text-teal-600 p-4 rounded-full"><i class="fas fa-chart-pie fa-2x"></i></div>
+                            <div>
+                                <p class="text-sm text-slate-500">Perkiraan Laba Kotor</p>
+                                <p class="text-2xl font-bold text-slate-800"><?= $data['laba_kotor'] ?></p>
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-md flex items-center gap-6">
+                            <div class="bg-lime-100 text-lime-600 p-4 rounded-full"><i class="fas fa-star fa-2x"></i></div>
+                            <div>
+                                <p class="text-sm text-slate-500">Barang Terlaris</p>
+                                <p class="text-2xl font-bold text-slate-800"><?= $data['barang_terlaris'] ?></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-md">
+                        <h2 class="text-2xl font-semibold text-slate-800 mb-4">Analisis Penjualan (7 Hari Terakhir)</h2>
+                        <p class="text-sm text-slate-500 mb-6">Grafik ini menunjukkan tren penjualan selama seminggu terakhir. Integrasikan dengan Chart.js untuk data dinamis.</p>
+                        <div class="h-64 flex items-end justify-between gap-2">
+                           <?php foreach($data['sales_chart_data'] as $value): ?>
+                                <div class="bg-green-400 w-full rounded-t-lg transition-all hover:bg-green-500" style="height: <?= $value ?>%;"></div>
+                           <?php endforeach; ?>
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?>
+
+        </main>
     </div>
 
-    <script>
-        // Chart configuration
-        const ctx = document.getElementById('salesChart').getContext('2d');
-        const salesChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: <?= json_encode(array_column($chart_data, 'tanggal')) ?>,
-                datasets: [{
-                    label: 'Penjualan',
-                    data: <?= json_encode(array_column($chart_data, 'total')) ?>,
-                    borderColor: 'rgb(99, 102, 241)',
-                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
-                    tension: 0.1
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            callback: function(value) {
-                                return 'Rp ' + value.toLocaleString();
-                            }
-                        }
-                    }
-                },
-                plugins: {
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return 'Penjualan: Rp ' + context.parsed.y.toLocaleString();
-                            }
-                        }
-                    }
-                }
-            }
-        });
-    </script>
 </body>
 </html>
