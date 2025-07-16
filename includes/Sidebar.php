@@ -24,9 +24,9 @@ $menuItems = [
         'icon' => 'fa-solid fa-sliders',
         'levels' => ['admin'],
         'submenu' => [
-            ['label' => 'Data Barang', 'icon' => 'fas fa-box', 'url' => './management/data_barang.php'],
-            ['label' => 'Kategori', 'icon' => 'fas fa-tags', 'url' => './management/data_kategori.php'],
-            ['label' => 'Pemasok', 'icon' => 'fas fa-truck', 'url' => './management/data_pemasok.php'],
+            ['label' => 'Kategori', 'icon' => 'fas fa-tags', 'url' => './manage_kategori.php'],
+            ['label' => 'Pemasok', 'icon' => 'fas fa-truck', 'url' => './manage_pemasok.php'],
+            ['label' => 'Data Barang', 'icon' => 'fas fa-box', 'url' => './manage_barang.php'],
         ]
     ],
     [
@@ -44,14 +44,14 @@ $menuItems = [
         'icon' => 'fa-solid fa-table-list',
         'levels' => ['admin', 'pemilik', 'kasir'],
         'submenu' => [
-            ['label' => 'Daftar Barang', 'icon' => 'fas fa-boxes', 'url' => './daftar/list_barang.php', 'levels' => ['admin', 'pemilik']],
-            ['label' => 'Daftar Pengguna', 'icon' => 'fas fa-users', 'url' => './daftar/list_pengguna.php', 'levels' => ['admin', 'pemilik']],
-            ['label' => 'Daftar Pemasok', 'icon' => 'fas fa-truck-loading', 'url' => './daftar/list_pemasok.php', 'levels' => ['admin', 'pemilik']],
-            ['label' => 'Daftar Kategori', 'icon' => 'fas fa-tags', 'url' => './daftar/list_kategori.php', 'levels' => ['admin', 'pemilik']],
-            ['label' => 'Daftar Pembelian', 'icon' => 'fas fa-dolly-flatbed', 'url' => './daftar/list_pembelian.php', 'levels' => ['admin', 'pemilik']],
-            ['label' => 'Daftar Penjualan', 'icon' => 'fas fa-receipt', 'url' => './daftar/list_penjualan.php', 'levels' => ['admin', 'kasir', 'pemilik']],
-            ['label' => 'Daftar Biaya Operasional', 'icon' => 'fas fa-file-invoice-dollar', 'url' => './daftar/list_biaya.php', 'levels' => ['admin', 'pemilik']],
-            ['label' => 'Daftar Transaksi Tunai', 'icon' => 'fas fa-hand-holding-usd', 'url' => './daftar/list_transaksi_tunai.php', 'levels' => ['kasir', 'pemilik']],
+            ['label' => 'Daftar Kategori', 'icon' => 'fas fa-tags', 'url' => './manage_kategori.php', 'levels' => ['admin', 'pemilik']],
+            ['label' => 'Daftar Barang', 'icon' => 'fas fa-boxes', 'url' => './manage_barang.php', 'levels' => ['admin', 'pemilik']],
+            ['label' => 'Daftar Pemasok', 'icon' => 'fas fa-truck-loading', 'url' => './manage_pemasok.php', 'levels' => ['admin', 'pemilik']],
+            ['label' => 'Daftar Pengguna', 'icon' => 'fas fa-users', 'url' => './data_pengguna.php', 'levels' => ['admin', 'pemilik']],
+            ['label' => 'Daftar Pembelian', 'icon' => 'fas fa-dolly-flatbed', 'url' => './transaksi_pembelian.php', 'levels' => ['admin', 'pemilik']],
+            ['label' => 'Daftar Penjualan', 'icon' => 'fas fa-receipt', 'url' => './transaksi_penjualan.php', 'levels' => ['admin', 'kasir', 'pemilik']],
+            ['label' => 'Daftar Biaya Operasional', 'icon' => 'fas fa-file-invoice-dollar', 'url' => './transaksi_biaya.php', 'levels' => ['admin', 'pemilik']],
+            ['label' => 'Daftar Transaksi Tunai', 'icon' => 'fas fa-hand-holding-usd', 'url' => './list_transaksi_penjualan.php', 'levels' => [ 'pemilik']],
         ]
     ],
     [
@@ -66,7 +66,7 @@ $menuItems = [
     ],
     [
         'label' => 'Pengaturan',
-        'icon' => 'fas fa-cog',
+        'icon' => 'fa-solid fa-users-gear',
         'url' => './data_pengguna.php',
         'levels' => ['admin'],
     ],

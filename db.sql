@@ -101,9 +101,9 @@ INSERT INTO kategori (kategori_barang) VALUES
 
 -- User default (password: admin123 dan kasir123 - akan di-hash di aplikasi)
 INSERT INTO pengguna (nama_user, username, password, level) VALUES
-('Admin Utama', 'admin01', MD5('admin123'), 'admin'),
-('Kasir Toko', 'kasir01', MD5('kasir123'), 'kasir'),
-('Pemilik Usaha', 'pemilik01', MD5('pemilik123'), 'pemilik');
+('Admin Utama', 'admin', MD5('admin'), 'admin'),
+('Kasir Toko', 'kasir', MD5('kasir'), 'kasir'),
+('Pemilik Usaha', 'pemilik', MD5('pemilik'), 'pemilik');
 
 
 -- Pemasok default

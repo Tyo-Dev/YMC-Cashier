@@ -57,9 +57,10 @@ $data = get_dummy_data($user_level);
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         /* Anda bisa menambahkan custom style di sini jika perlu */
-        .card-hover-effect {
-            @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
-        }
+        /* .card-hover-effect dihapus karena @apply tidak didukung di CSS biasa.
+           Gunakan langsung kelas utilitas Tailwind di elemen HTML Anda:
+           transition-all duration-300 hover:shadow-xl hover:-translate-y-1
+        */
     </style>
 </head>
 <body class="bg-slate-50">
