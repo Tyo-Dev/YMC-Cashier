@@ -32,11 +32,10 @@ $menuItems = [
     [
         'label' => 'Transaksi',
         'icon' => 'fa-solid fa-hand-holding-dollar',
-        'levels' => ['admin', 'kasir'],
+        'levels' => ['admin'],
         'submenu' => [
-            ['label' => 'Penjualan', 'icon' => 'fas fa-shopping-cart', 'url' => './transaksi/data_penjualan.php', 'levels' => ['kasir']],
-            ['label' => 'Pembelian', 'icon' => 'fas fa-dolly', 'url' => './transaksi/data_pembelian.php', 'levels' => ['admin']],
-            ['label' => 'Biaya Operasional', 'icon' => 'fa-regular fa-money-bill-1', 'url' => './transaksi/data_biaya.php', 'levels' => ['admin']],
+            ['label' => 'Pembelian', 'icon' => 'fas fa-dolly', 'url' => './transaksi_pembelian.php', 'levels' => ['admin']],
+            ['label' => 'Biaya Operasional', 'icon' => 'fa-regular fa-money-bill-1', 'url' => './transaksi_biaya.php', 'levels' => ['admin']],
         ]
     ],
     [
@@ -49,9 +48,10 @@ $menuItems = [
             ['label' => 'Daftar Pemasok', 'icon' => 'fas fa-truck-loading', 'url' => './manage_pemasok.php', 'levels' => ['admin', 'pemilik']],
             ['label' => 'Daftar Pengguna', 'icon' => 'fas fa-users', 'url' => './data_pengguna.php', 'levels' => ['admin', 'pemilik']],
             ['label' => 'Daftar Pembelian', 'icon' => 'fas fa-dolly-flatbed', 'url' => './transaksi_pembelian.php', 'levels' => ['admin', 'pemilik']],
-            ['label' => 'Daftar Penjualan', 'icon' => 'fas fa-receipt', 'url' => './transaksi_penjualan.php', 'levels' => ['admin', 'kasir', 'pemilik']],
+            ['label' => 'Daftar Barang Penjualan', 'icon' => 'fas fa-receipt', 'url' => './list_barang_penjualan.php', 'levels' => [ 'kasir', 'pemilik']],
+            ['label' => 'Daftar Penjualan Barang', 'icon' => 'fas fa-receipt', 'url' => './list_transaksi_penjualan.php', 'levels' => [ 'admin']],
             ['label' => 'Daftar Biaya Operasional', 'icon' => 'fas fa-file-invoice-dollar', 'url' => './transaksi_biaya.php', 'levels' => ['admin', 'pemilik']],
-            ['label' => 'Daftar Transaksi Tunai', 'icon' => 'fas fa-hand-holding-usd', 'url' => './list_transaksi_penjualan.php', 'levels' => [ 'pemilik']],
+            ['label' => 'Daftar Transaksi Tunai', 'icon' => 'fas fa-hand-holding-usd', 'url' => './list_transaksi_penjualan.php', 'levels' => [ 'pemilik', 'kasir']],
         ]
     ],
     [
@@ -115,7 +115,7 @@ $menuItems = [
                         <span class="absolute left-full ml-4 hidden whitespace-nowrap rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white group-hover:block"><?= $item['label'] ?></span>
                     </a>
                     <?php if ($hasSubmenu): ?>
-                        <ul id="submenu-<?= strtolower(str_replace(' ', '', $item['label'])) ?>" class="submenu absolute left-full top-0 ml-4 hidden w-52 rounded-md bg-gray-800 p-2 shadow-lg">
+                        <ul id="submenu-<?= strtolower(str_replace(' ', '', $item['label'])) ?>" class="submenu absolute left-full top-0 ml-4 hidden w-max rounded-md bg-gray-800 p-2 shadow-lg">
                             <?php foreach ($item['submenu'] as $sub): 
                                 // Validasi untuk submenu sudah benar
                                 if (isset($sub['levels']) && !in_array($user_level, $sub['levels'])) continue; 
