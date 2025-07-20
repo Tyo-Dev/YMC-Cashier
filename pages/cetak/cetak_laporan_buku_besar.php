@@ -1,7 +1,13 @@
 <?php
 session_start();
 require_once '../../config/koneksi.php';
-require_once '../../includes/functions.php';
+// Jika fungsi tidak tersedia di includes/functions.php, tambahkan di sini:
+if (!function_exists('formatRupiah')) {
+    function formatRupiah($angka)
+    {
+        return "Rp " . number_format($angka, 0, ',', '.');
+    }
+}
 
 // Validasi akses
 if (!isset($_SESSION['pengguna'])) {
@@ -53,7 +59,6 @@ $transaksis = $stmt->fetchAll(PDO::FETCH_ASSOC);
 // Hitung saldo berjalan
 $saldo_debit = 0;
 $saldo_kredit = 0;
-
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -73,6 +78,7 @@ $saldo_kredit = 0;
             line-height: 1.4;
             margin: 0;
             padding: 1cm;
+            background: #fff;
         }
 
         .header {
@@ -81,7 +87,7 @@ $saldo_kredit = 0;
         }
 
         .header h1 {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: bold;
             margin: 0 0 5px 0;
         }
@@ -92,7 +98,7 @@ $saldo_kredit = 0;
         }
 
         .header p {
-            font-size: 12px;
+            font-size: 13px;
             margin: 0;
         }
 
@@ -100,18 +106,19 @@ $saldo_kredit = 0;
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
-            font-size: 11px;
+            font-size: 12px;
         }
 
         th,
         td {
             border: 1px solid #000;
-            padding: 6px;
+            padding: 7px 5px;
         }
 
         th {
-            background-color: #f0f0f0;
+            background-color: #e0e7ff;
             text-align: center;
+            font-weight: 600;
         }
 
         .text-right {
@@ -120,6 +127,10 @@ $saldo_kredit = 0;
 
         .text-center {
             text-align: center;
+        }
+
+        tbody tr:nth-child(even) {
+            background: #f6f8fa;
         }
     </style>
 </head>
@@ -130,33 +141,31 @@ $saldo_kredit = 0;
         <h2>Toko Yumna Moslem Collection</h2>
         <p>Periode : <?= date('d/m/Y', strtotime($tanggal_awal)) ?> s.d <?= date('d/m/Y', strtotime($tanggal_akhir)) ?></p>
     </div>
-
     <table>
         <thead>
             <tr>
-                <th>Tanggal</th>
-                <th>Id Transaksi</th>
-                <th>Rekening</th>
-                <th>Debit</th>
-                <th>Kredit</th>
+                <th rowspan="2"">Tanggal</th>
+                <th rowspan=" 2">Id Transaksi</th>
+                <th rowspan="2">Rekening</th>
+                <th rowspan="2">Debit</th>
+                <th rowspan="2">Kredit</th>
                 <th colspan="2">Saldo</th>
             </tr>
             <tr>
-                <th colspan="5"></th>
+
                 <th>Debit</th>
                 <th>Kredit</th>
             </tr>
         </thead>
         <tbody>
             <?php foreach ($transaksis as $transaksi):
-                // Update running balance
                 $saldo_debit += $transaksi['debit'];
                 $saldo_kredit += $transaksi['kredit'];
             ?>
                 <tr>
                     <td class="text-center"><?= date('d/m/Y', strtotime($transaksi['tanggal'])) ?></td>
-                    <td><?= htmlspecialchars($transaksi['id_transaksi']) ?></td>
-                    <td><?= htmlspecialchars($transaksi['rekening']) ?></td>
+                    <td class="text-center"><?= htmlspecialchars($transaksi['id_transaksi']) ?></td>
+                    <td class="text-center"><?= htmlspecialchars($transaksi['rekening']) ?></td>
                     <td class="text-right"><?= $transaksi['debit'] > 0 ? formatRupiah($transaksi['debit']) : '-' ?></td>
                     <td class="text-right"><?= $transaksi['kredit'] > 0 ? formatRupiah($transaksi['kredit']) : '-' ?></td>
                     <td class="text-right"><?= formatRupiah($saldo_debit) ?></td>
