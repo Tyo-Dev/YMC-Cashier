@@ -59,9 +59,9 @@ $menuItems = [
         'icon' => 'fa-regular fa-file-lines',
         'levels' => ['admin', 'pemilik'],
         'submenu' => [
-            ['label' => 'Lap. Penjualan', 'icon' => 'fas fa-chart-line', 'url' => './laporan/lap_penjualan.php'],
-            ['label' => 'Lap. Pembelian', 'icon' => 'fas fa-chart-area', 'url' => './laporan/lap_pembelian.php'],
-            ['label' => 'Lap. Buku Besar', 'icon' => 'fas fa-book', 'url' => './laporan/lap_buku_besar.php'],
+            ['label' => 'Lap. Penjualan', 'icon' => 'fas fa-chart-line', 'url' => './laporan_penjualan.php'],
+            ['label' => 'Lap. Pembelian', 'icon' => 'fas fa-chart-area', 'url' => './laporan_pembelian.php'],
+            ['label' => 'Lap. Buku Besar', 'icon' => 'fas fa-book', 'url' => './laporan_buku_besar.php'],
         ]
     ],
     [
