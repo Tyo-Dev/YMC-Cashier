@@ -229,6 +229,21 @@ try {
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
         }
 
+        /* Header styling */
+        .header-banner {
+            background-size: 400px;
+            background-position: right bottom;
+            background-repeat: no-repeat;
+        }
+
+        /* Glassmorphism effects */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2);
+        }
+
         /* Pulsing animation for low stock alert */
         .pulse {
             animation: pulse 2s infinite;
@@ -287,10 +302,52 @@ try {
 
         <main class="flex-1 p-4 sm:p-6 md:p-8 max-w-7xl mx-auto">
             <div class="max-w-7xl mx-auto">
-                <header class="mb-8 text-center sm:text-left">
-                    <h1 class="text-3xl sm:text-4xl font-bold text-gray-800">Selamat Datang, <?= $nama_user ?>!</h1>
-                    <p class="text-gray-500 mt-2">Dashboard <?= ucfirst($user_level) ?> - <?= date('d F Y') ?></p>
-                </header>
+                <!-- Enhanced Header with Gradient Banner -->
+                <div class="mb-8 bg-gradient-to-r from-indigo-600 to-blue-500 rounded-2xl shadow-lg overflow-hidden">
+                    <div class="relative">
+                        <!-- Background Pattern -->
+                        <div class="absolute inset-0 opacity-10">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+                                <defs>
+                                    <pattern id="header-pattern" patternUnits="userSpaceOnUse" width="40" height="40" patternTransform="rotate(45)">
+                                        <rect width="100%" height="100%" fill="none" />
+                                        <circle cx="20" cy="20" r="3" fill="currentColor" />
+                                    </pattern>
+                                </defs>
+                                <rect width="100%" height="100%" fill="url(#header-pattern)" />
+                            </svg>
+                        </div>
+
+                        <div class="p-6 sm:p-8 relative z-10 flex flex-col md:flex-row justify-between items-center">
+                            <div class="text-center md:text-left mb-4 md:mb-0">
+                                <h1 class="text-3xl sm:text-4xl font-bold text-white">Selamat Datang, <?= $nama_user ?>!</h1>
+                                <p class="text-blue-100 mt-2 text-lg">Dashboard <?= ucfirst($user_level) ?> - <?= date('d F Y') ?></p>
+                            </div>
+
+                            <!-- Quick Stats Based on User Role -->
+                            <div class="flex gap-4">
+                                <?php if ($user_level == 'admin' || $user_level == 'pemilik'): ?>
+                                    <div class="bg-white/20 backdrop-blur-md rounded-lg p-3 text-center min-w-[120px]">
+                                        <p class="text-white text-sm font-medium">Transaksi Hari Ini</p>
+                                        <p class="text-white text-xl font-bold"><?= $data['transaksi_hari_ini'] ?? 0 ?></p>
+                                    </div>
+                                <?php endif; ?>
+
+                                <?php if ($user_level == 'kasir'): ?>
+                                    <div class="bg-white/20 backdrop-blur-md rounded-lg p-3 text-center min-w-[120px]">
+                                        <p class="text-white text-sm font-medium">Transaksi Anda</p>
+                                        <p class="text-white text-xl font-bold"><?= $data['transaksi_anda_hari_ini'] ?? 0 ?></p>
+                                    </div>
+                                <?php endif; ?>
+
+                                <div class="bg-white/20 backdrop-blur-md rounded-lg p-3 text-center min-w-[120px]">
+                                    <p class="text-white text-sm font-medium">Tanggal</p>
+                                    <p class="text-white text-xl font-bold"><?= date('d/m/Y') ?></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 <?php if ($user_level == 'admin'): ?>
                     <div class="space-y-8">
@@ -341,9 +398,9 @@ try {
                                     <p class="font-medium text-gray-700">Daftar Transaksi</p>
                                 </a>
 
-                                <a href="transaksi_penjualan.php" class="bg-white rounded-xl shadow-sm p-5 text-center transition-all duration-300 hover:shadow-md hover:-translate-y-1">
-                                    <i class="fas fa-cash-register fa-2x text-purple-500 mb-3"></i>
-                                    <p class="font-medium text-gray-700">Halaman Kasir</p>
+                                <a href="transaksi_pembelian.php" class="bg-white rounded-xl shadow-sm p-5 text-center transition-all duration-300 hover:shadow-md hover:-translate-y-1">
+                                    <i class="fa-solid fa-wallet fa-2x text-purple-500 mb-3"></i>
+                                    <p class="font-medium text-gray-700">Tambah Pembelian</p>
                                 </a>
 
                                 <a href="manage_user.php" class="bg-white rounded-xl shadow-sm p-5 text-center transition-all duration-300 hover:shadow-md hover:-translate-y-1">
@@ -416,7 +473,7 @@ try {
                         </div>
 
                         <!-- Big POS Button -->
-                        <a href="./transaksi_penjualan.php" class="block bg-gradient-to-br from-blue-600 to-green-500 text-white rounded-xl shadow-lg p-8 text-center hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                        <a href="./transaksi_penjualan.php" class="block bg-white text-purple-600 rounded-xl shadow-lg p-8 text-center hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
                             <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
                                 <div class="text-5xl mb-4 sm:mb-0">
                                     <i class="fas fa-cash-register"></i>
@@ -532,22 +589,22 @@ try {
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                             <a href="manage_barang.php" class="bg-white rounded-xl shadow-sm p-5 text-center transition-all duration-300 hover:shadow-md hover:-translate-y-1">
                                 <i class="fas fa-box-open fa-2x text-blue-500 mb-3"></i>
-                                <p class="font-medium text-gray-700">Kelola Barang</p>
+                                <p class="font-medium text-gray-700">Lihat Stok Barang</p>
                             </a>
 
-                            <a href="list_transaksi_penjualan.php" class="bg-white rounded-xl shadow-sm p-5 text-center transition-all duration-300 hover:shadow-md hover:-translate-y-1">
+                            <a href="laporan_penjualan.php" class="bg-white rounded-xl shadow-sm p-5 text-center transition-all duration-300 hover:shadow-md hover:-translate-y-1">
                                 <i class="fas fa-chart-line fa-2x text-green-500 mb-3"></i>
                                 <p class="font-medium text-gray-700">Laporan Penjualan</p>
                             </a>
 
                             <a href="manage_pemasok.php" class="bg-white rounded-xl shadow-sm p-5 text-center transition-all duration-300 hover:shadow-md hover:-translate-y-1">
                                 <i class="fas fa-truck fa-2x text-yellow-500 mb-3"></i>
-                                <p class="font-medium text-gray-700">Kelola Supplier</p>
+                                <p class="font-medium text-gray-700">Contact Supplier</p>
                             </a>
 
-                            <a href="manage_user.php" class="bg-white rounded-xl shadow-sm p-5 text-center transition-all duration-300 hover:shadow-md hover:-translate-y-1">
+                            <a href="data_pengguna.php" class="bg-white rounded-xl shadow-sm p-5 text-center transition-all duration-300 hover:shadow-md hover:-translate-y-1">
                                 <i class="fas fa-users fa-2x text-purple-500 mb-3"></i>
-                                <p class="font-medium text-gray-700">Kelola Pengguna</p>
+                                <p class="font-medium text-gray-700">Daftar Pengguna</p>
                             </a>
                         </div>
 

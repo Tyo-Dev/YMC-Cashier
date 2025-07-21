@@ -48,10 +48,10 @@ $menuItems = [
             ['label' => 'Daftar Pemasok', 'icon' => 'fas fa-truck-loading', 'url' => './manage_pemasok.php', 'levels' => ['admin', 'pemilik']],
             ['label' => 'Daftar Pengguna', 'icon' => 'fas fa-users', 'url' => './data_pengguna.php', 'levels' => ['admin', 'pemilik']],
             ['label' => 'Daftar Pembelian', 'icon' => 'fas fa-dolly-flatbed', 'url' => './transaksi_pembelian.php', 'levels' => ['admin', 'pemilik']],
-            ['label' => 'Daftar Barang Penjualan', 'icon' => 'fas fa-receipt', 'url' => './list_barang_penjualan.php', 'levels' => [ 'kasir', 'pemilik']],
-            ['label' => 'Daftar Penjualan Barang', 'icon' => 'fas fa-receipt', 'url' => './list_transaksi_penjualan.php', 'levels' => [ 'admin']],
+            ['label' => 'Daftar Barang Penjualan', 'icon' => 'fas fa-receipt', 'url' => './list_barang_penjualan.php', 'levels' => ['kasir', 'pemilik']],
+            ['label' => 'Daftar Penjualan Barang', 'icon' => 'fas fa-receipt', 'url' => './list_transaksi_penjualan.php', 'levels' => ['admin']],
             ['label' => 'Daftar Biaya Operasional', 'icon' => 'fas fa-file-invoice-dollar', 'url' => './transaksi_biaya.php', 'levels' => ['admin', 'pemilik']],
-            ['label' => 'Daftar Transaksi Tunai', 'icon' => 'fas fa-hand-holding-usd', 'url' => './list_transaksi_penjualan.php', 'levels' => [ 'pemilik', 'kasir']],
+            ['label' => 'Daftar Transaksi Tunai', 'icon' => 'fas fa-hand-holding-usd', 'url' => './list_transaksi_penjualan.php', 'levels' => ['pemilik', 'kasir']],
         ]
     ],
     [
@@ -75,7 +75,7 @@ $menuItems = [
 
 <aside class="fixed left-0 top-0 z-50 flex h-screen w-20 flex-col bg-green-800 text-white shadow-lg">
     <div class="flex h-20 flex-shrink-0 items-center justify-center border-b border-green-900/50">
-        <i class="fas fa-leaf text-3xl text-lime-300"></i>
+        <img src="../assets/images/logo.png" alt="Yumna Moslem Collection" class="w-14 h-14 object-contain">
     </div>
 
     <nav class="flex h-full flex-col p-2">
@@ -83,14 +83,10 @@ $menuItems = [
             <?php
             $bottom_items_labels = ['Pengaturan', 'Logout'];
             foreach ($menuItems as $item):
-                // ==========================================================
-                // ## BUG FIX 1: TAMBAHKAN VALIDASI LEVEL UNTUK MENU UTAMA ##
-                // ==========================================================
-                // Jika level user tidak ada di dalam array 'levels' menu ini, lewati (jangan tampilkan)
                 if (!in_array($user_level, $item['levels'])) {
                     continue;
                 }
-                
+
                 // Jangan proses item menu bawah di loop ini
                 if (in_array($item['label'], $bottom_items_labels)) continue;
 
@@ -116,9 +112,9 @@ $menuItems = [
                     </a>
                     <?php if ($hasSubmenu): ?>
                         <ul id="submenu-<?= strtolower(str_replace(' ', '', $item['label'])) ?>" class="submenu absolute left-full top-0 ml-4 hidden w-max rounded-md bg-gray-800 p-2 shadow-lg">
-                            <?php foreach ($item['submenu'] as $sub): 
+                            <?php foreach ($item['submenu'] as $sub):
                                 // Validasi untuk submenu sudah benar
-                                if (isset($sub['levels']) && !in_array($user_level, $sub['levels'])) continue; 
+                                if (isset($sub['levels']) && !in_array($user_level, $sub['levels'])) continue;
                             ?>
                                 <li>
                                     <a href="<?= $sub['url'] ?>" class="flex items-center gap-3 rounded p-2 text-sm text-gray-300 hover:bg-green-700 hover:text-white">
@@ -153,7 +149,7 @@ $menuItems = [
                     </a>
                 </li>
             <?php endif; ?>
-            
+
             <li class="relative">
                 <a href="../auth/logout.php" class="group flex items-center justify-center rounded bg-red-600/80 p-4 transition-all hover:bg-red-600">
                     <i class="fas fa-sign-out-alt w-6 text-center text-xl"></i>
