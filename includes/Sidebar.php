@@ -108,7 +108,7 @@ $menuItems = [
                 <li class="relative">
                     <a href="<?= $hasSubmenu ? '#' : $item['url'] ?>" class="group flex items-center justify-center rounded p-4 transition-all hover:bg-green-700 <?= $active_class ?>" <?= $hasSubmenu ? 'onclick="toggleSubmenu(event, \'submenu-' . strtolower(str_replace(' ', '', $item['label'])) . '\')"' : '' ?>>
                         <i class="<?= $item['icon'] ?> w-6 text-center text-xl"></i>
-                        <span class="absolute left-full ml-4 hidden whitespace-nowrap rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white group-hover:block"><?= $item['label'] ?></span>
+                        <span class="absolute left-full ml-4 hidden whitespace-nowrap rounded-md bg-green-600 px-3 py-2 text-sm font-medium text-white group-hover:block"><?= $item['label'] ?></span>
                     </a>
                     <?php if ($hasSubmenu): ?>
                         <ul id="submenu-<?= strtolower(str_replace(' ', '', $item['label'])) ?>" class="submenu absolute left-full top-0 ml-4 hidden w-max rounded-md bg-gray-800 p-2 shadow-lg">

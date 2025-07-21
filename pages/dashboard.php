@@ -303,7 +303,7 @@ try {
         <main class="flex-1 p-4 sm:p-6 md:p-8 max-w-7xl mx-auto">
             <div class="max-w-7xl mx-auto">
                 <!-- Enhanced Header with Gradient Banner -->
-                <div class="mb-8 bg-gradient-to-r from-indigo-600 to-blue-500 rounded-2xl shadow-lg overflow-hidden">
+                <div class="mb-8 bg-gradient-to-r from-green-600 to-green-500 rounded-2xl shadow-lg overflow-hidden">
                     <div class="relative">
                         <!-- Background Pattern -->
                         <div class="absolute inset-0 opacity-10">
