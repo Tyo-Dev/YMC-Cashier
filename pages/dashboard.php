@@ -473,7 +473,7 @@ try {
                         </div>
 
                         <!-- Big POS Button -->
-                        <a href="./transaksi_penjualan.php" class="block bg-white text-purple-600 rounded-xl shadow-lg p-8 text-center hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                        <a href="./transaksi_penjualan.php" class="block bg-white text-green-600 rounded-xl shadow-lg p-8 text-center hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
                             <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
                                 <div class="text-5xl mb-4 sm:mb-0">
                                     <i class="fas fa-cash-register"></i>

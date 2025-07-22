@@ -56,6 +56,7 @@ function formatRupiah($angka)
 ?>
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <title>Nota #<?= htmlspecialchars($penjualan['no_transaksi']) ?></title>
@@ -67,71 +68,104 @@ function formatRupiah($angka)
             margin: 0 auto;
             color: #000;
         }
+
         .container {
             padding: 10px;
         }
+
         .header {
             text-align: center;
             margin-bottom: 10px;
         }
+
         .logo {
-            width: 60px;
-            height: 60px;
-            border: 1px solid #000;
-            border-radius: 50%;
-            margin: 0 auto 5px auto;
+            width: 70px;
+            height: 70px;
+            margin: 0 auto 8px auto;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
         }
+
+        .logo img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .company-name {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+
+        .transaction-number {
+            font-weight: bold;
+        }
+
         hr {
             border: none;
             border-top: 1px solid #000;
             margin: 5px 0;
         }
+
         .info {
             margin-bottom: 10px;
         }
+
         .info-line {
             display: flex;
             justify-content: space-between;
         }
+
         .item-list .item {
             margin-bottom: 5px;
         }
-        .item-line, .total-line {
+
+        .item-line,
+        .total-line {
             display: flex;
             justify-content: space-between;
         }
+
         .totals {
             margin-top: 10px;
         }
+
         .footer {
             text-align: center;
             margin-top: 15px;
         }
+
         @media print {
             @page {
                 size: 80mm auto;
                 margin: 0;
             }
+
             body {
                 margin: 0;
             }
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="header">
-            <div class="logo">Logo</div>
-            <div>Alamat</div>
-            <div>No Telp</div>
+            <div class="logo">
+                <img src="../../assets/images/logo.png" alt="Logo YMC Cashier">
+            </div>
+            <div class="company-name">YMC Cashier</div>
+            <div>Jl. Raya Utama No. 123, Jakarta</div>
+            <div>Telp: 021-12345678</div>
         </div>
 
         <hr>
         <div class="info">
+            <div class="info-line">
+                <span class="transaction-number">No: <?= htmlspecialchars($penjualan['no_transaksi']) ?></span>
+            </div>
             <div class="info-line">
                 <span>Tgl: <?= htmlspecialchars(date('d/m/Y', strtotime($penjualan['tanggal']))) ?></span>
             </div>
@@ -141,19 +175,19 @@ function formatRupiah($angka)
             </div>
         </div>
         <hr>
-        
+
         <div class="item-list">
             <?php foreach ($items as $item): ?>
-            <div class="item">
-                <div class="item-line">
-                    <span>Kode Brg: <?= htmlspecialchars($item['kode_barang']) ?></span>
-                    <span><?= htmlspecialchars($item['nama_barang']) ?></span>
+                <div class="item">
+                    <div class="item-line">
+                        <span>Kode Brg: <?= htmlspecialchars($item['kode_barang']) ?></span>
+                        <span><?= htmlspecialchars($item['nama_barang']) ?></span>
+                    </div>
+                    <div class="item-line">
+                        <span><?= $item['jumlah'] ?> x <?= formatRupiah($item['harga_satuan']) ?></span>
+                        <span><?= formatRupiah($item['subtotal_barang']) ?></span>
+                    </div>
                 </div>
-                <div class="item-line">
-                    <span><?= $item['jumlah'] ?> x <?= formatRupiah($item['harga_satuan']) ?></span>
-                    <span><?= formatRupiah($item['subtotal_barang']) ?></span>
-                </div>
-            </div>
             <?php endforeach; ?>
         </div>
 
@@ -179,7 +213,8 @@ function formatRupiah($angka)
         </div>
 
         <div class="footer">
-            <p>Terimakasih telah berbelanja</p>
+            <p>*** Terimakasih Telah Berbelanja ***</p>
+            <p>Barang yang sudah dibeli tidak dapat ditukar/dikembalikan</p>
         </div>
     </div>
 
@@ -202,4 +237,5 @@ function formatRupiah($angka)
         });
     </script>
 </body>
+
 </html>

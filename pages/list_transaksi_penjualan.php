@@ -21,6 +21,8 @@ $user_level = $_SESSION['pengguna']['level'];
         body {
             font-family: 'Inter', sans-serif;
             display: flex;
+            min-height: 100vh;
+            background-color: #f9fafb;
         }
 
         main {
@@ -30,8 +32,15 @@ $user_level = $_SESSION['pengguna']['level'];
         .table-container {
             background-color: white;
             border-radius: 1rem;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.1);
             overflow: hidden;
+            border: 1px solid rgba(229, 231, 235, 0.7);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .table-container:hover {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
         }
 
         /* Custom select styling */
@@ -44,16 +53,17 @@ $user_level = $_SESSION['pengguna']['level'];
             appearance: none;
             -webkit-appearance: none;
             width: 100%;
-            padding: 0.5rem 2.5rem 0.5rem 1rem;
+            padding: 0.75rem 2.5rem 0.75rem 1rem;
             font-size: 0.875rem;
             line-height: 1.5;
             background-color: #fff;
-            border: 1px solid #d1d5db;
-            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
             color: #1f2937;
             cursor: pointer;
             outline: none;
             transition: all 0.15s ease-in-out;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         }
 
         .custom-select select:focus {
@@ -73,6 +83,29 @@ $user_level = $_SESSION['pengguna']['level'];
             pointer-events: none;
         }
 
+        /* Table styling */
+        table {
+            border-collapse: separate;
+            border-spacing: 0;
+            width: 100%;
+        }
+        
+        thead th {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            background: linear-gradient(to right, #f9fafb, #f3f4f6);
+        }
+        
+        tbody tr:hover {
+            background-color: #f8fafc;
+        }
+        
+        tbody td {
+            border-bottom: 1px solid #f1f5f9;
+            transition: all 0.2s;
+        }
+
         /* Modal styles */
         .modal-backdrop {
             position: fixed;
@@ -80,21 +113,54 @@ $user_level = $_SESSION['pengguna']['level'];
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(6px);
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 100;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+        
+        .modal-backdrop:not(.hidden) {
+            opacity: 1;
         }
 
         .modal {
             background-color: white;
-            border-radius: 0.5rem;
+            border-radius: 1rem;
             width: 100%;
-            max-width: 32rem;
+            max-width: 40rem;
             max-height: 90vh;
             overflow-y: auto;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 10px 20px -5px rgba(0, 0, 0, 0.1);
+            transform: translateY(20px) scale(0.98);
+            transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+            border: 1px solid rgba(229, 231, 235, 1); /* gray-200 */
+        }
+        
+        .modal-backdrop:not(.hidden) .modal {
+            transform: translateY(0) scale(1);
+        }
+        
+        /* Scrollbar styling for modal */
+        .modal::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .modal::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        .modal::-webkit-scrollbar-thumb {
+            background: #c5c5c5;
+            border-radius: 10px;
+        }
+        
+        .modal::-webkit-scrollbar-thumb:hover {
+            background: #a0a0a0;
         }
     </style>
 </head>
@@ -104,17 +170,31 @@ $user_level = $_SESSION['pengguna']['level'];
 
     <main class="w-full p-4 lg:p-8">
         <div class="max-w-7xl mx-auto">
-            <header class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                <h1 class="text-3xl font-bold text-gray-800">Daftar Penjualan</h1>
+            <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-800 mb-2 flex items-center">
+                        <span class="w-10 h-10 rounded-lg bg-green-100 text-green-600 flex items-center justify-center mr-3">
+                            <i class="fas fa-shopping-cart"></i>
+                        </span>
+                        Daftar Penjualan
+                    </h1>
+                </div>
                 <div class="flex items-center gap-4 w-full md:w-auto">
-                    <div class="custom-select w-full md:w-60">
-                        <select id="kasirFilter" class="focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <div class="relative w-full md:w-64">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                            <i class="fas fa-user-tag text-gray-400"></i>
+                        </div>
+                        <select id="kasirFilter" class="bg-white border border-gray-200 text-gray-700 rounded-lg block w-full pl-10 pr-10 py-3 appearance-none focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 shadow-sm">
                             <option value="">Semua Kasir</option>
                         </select>
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                            <i class="fas fa-chevron-down text-gray-400"></i>
+                        </div>
                     </div>
                     <?php if ($user_level === 'kasir'): ?>
-                        <a href="transaksi_penjualan.php" class="w-full md:w-auto flex-shrink-0 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition text-center">
-                            <i class="fas fa-plus mr-2"></i>Tambah Penjualan
+                        <a href="transaksi_penjualan.php" class="w-full md:w-auto flex-shrink-0 bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-6 rounded-xl transition-all duration-200 flex items-center justify-center shadow-sm hover:shadow-md">
+                            <i class="fas fa-plus mr-2"></i>
+                            <span>Tambah Penjualan</span>
                         </a>
                     <?php endif; ?>
                 </div>
@@ -123,21 +203,22 @@ $user_level = $_SESSION['pengguna']['level'];
             <div class="table-container">
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm">
-                        <thead class="bg-gray-50 border-b">
-                            <tr>
-                                <th class="p-4 text-left font-semibold text-gray-600">No. Transaksi</th>
-                                <th class="p-4 text-left font-semibold text-gray-600">Tanggal</th>
-                                <th class="p-4 text-left font-semibold text-gray-600">Kasir</th>
-                                <th class="p-4 text-center font-semibold text-gray-600">Total Item</th>
-                                <th class="p-4 text-right font-semibold text-gray-600">Total Harga</th>
-                                <th class="p-4 text-center font-semibold text-gray-600">Aksi</th>
+                        <thead>
+                            <tr class="bg-gray-50 border-b border-gray-100">
+                                <th class="px-6 py-4 text-left font-semibold text-gray-600 uppercase tracking-wider text-xs">Info Transaksi</th>
+                                <th class="px-6 py-4 text-left font-semibold text-gray-600 uppercase tracking-wider text-xs">Kasir</th>
+                                <th class="px-6 py-4 text-center font-semibold text-gray-600 uppercase tracking-wider text-xs">Item</th>
+                                <th class="px-6 py-4 text-right font-semibold text-gray-600 uppercase tracking-wider text-xs">Total</th>
+                                <th class="px-6 py-4 text-center font-semibold text-gray-600 uppercase tracking-wider text-xs">Aksi</th>
                             </tr>
                         </thead>
                         <tbody id="salesTableBody">
                         </tbody>
                     </table>
-                    <div id="loadingIndicator" class="text-center p-8">
-                        <p class="text-gray-500">Memuat data...</p>
+                    <div id="loadingIndicator" class="flex flex-col items-center justify-center p-16">
+                        <div class="animate-spin rounded-full h-14 w-14 border-t-2 border-b-2 border-green-500 mb-4"></div>
+                        <p class="text-gray-500 font-medium">Memuat data transaksi...</p>
+                        <p class="text-gray-500 font-medium">Memuat data penjualan...</p>
                     </div>
                 </div>
             </div>
@@ -147,29 +228,33 @@ $user_level = $_SESSION['pengguna']['level'];
     <!-- Edit Transaction Modal -->
     <div id="editTransactionModal" class="modal-backdrop hidden">
         <div class="modal">
-            <div class="p-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-bold text-gray-900">Edit Transaksi</h3>
-                    <button type="button" id="closeModal" class="text-gray-500 hover:text-gray-700">
+            <div class="p-6 md:p-8">
+                <div class="flex justify-between items-center mb-6 border-b pb-4">
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-900">Edit Transaksi</h3>
+                        <p class="text-sm text-gray-500 mt-1">Modifikasi detail transaksi penjualan</p>
+                    </div>
+                    <button type="button" id="closeModal" class="text-gray-500 hover:text-gray-700 h-10 w-10 rounded-full flex items-center justify-center hover:bg-gray-100 transition-all">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
                 <div class="modal-content">
                     <!-- Modal content will be loaded dynamically -->
-                    <div id="modalLoadingIndicator" class="py-10 text-center">
-                        <i class="fas fa-spinner fa-spin text-blue-500 text-2xl mb-2"></i>
-                        <p>Memuat detail transaksi...</p>
+                    <div id="modalLoadingIndicator" class="py-16 text-center">
+                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
+                        <p class="text-gray-500 font-medium">Memuat detail transaksi...</p>
                     </div>
                     <div id="transactionDetails" class="hidden">
                         <!-- Transaction details will be inserted here -->
                     </div>
                 </div>
-                <div class="flex justify-end mt-6 gap-2">
-                    <button id="saveChangesBtn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-                        Simpan Perubahan
-                    </button>
-                    <button id="cancelEditBtn" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition">
+                <div class="flex justify-end mt-8 gap-3 pt-4 border-t">
+                    <button id="cancelEditBtn" class="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all duration-200 font-medium">
                         Batal
+                    </button>
+                    <button id="saveChangesBtn" class="px-6 py-2.5 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-all duration-200 flex items-center gap-2 font-medium shadow-sm">
+                        <i class="fas fa-save"></i>
+                        <span>Simpan Perubahan</span>
                     </button>
                 </div>
             </div>
@@ -212,7 +297,9 @@ $user_level = $_SESSION['pengguna']['level'];
                         sales.forEach(sale => {
                             // Build actions based on user level
                             let actionButtons = `
-                                <a href="cetak/nota_penjualan.php?id=${sale.id_penjualan}" target="_blank" class="text-green-500 hover:text-green-700" title="Lihat Nota">
+                                <a href="cetak/nota_penjualan.php?id=${sale.id_penjualan}" target="_blank" 
+                                   class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-green-50 hover:bg-green-100 transition-all text-green-600 hover:text-green-700" 
+                                   title="Lihat Nota">
                                     <i class="fas fa-eye"></i>
                                 </a>
                             `;
@@ -220,21 +307,36 @@ $user_level = $_SESSION['pengguna']['level'];
                             // Only kasir can edit transactions (formerly delete)
                             if (userLevel === 'kasir') {
                                 actionButtons += `
-                                    <button onclick="editTransaction(${sale.id_penjualan})" class="text-blue-500 hover:text-blue-700 ml-3" title="Edit Transaksi">
+                                    <button onclick="editTransaction(${sale.id_penjualan})" 
+                                            class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-blue-50 hover:bg-blue-100 transition-all text-blue-600 hover:text-blue-700 ml-2" 
+                                            title="Edit Transaksi">
                                         <i class="fas fa-edit"></i>
                                     </button>
                                 `;
                             }
 
                             const row = `
-                                <tr class="border-b hover:bg-gray-50">
-                                    <td class="p-4 font-mono text-blue-600">${sale.no_transaksi}</td>
-                                    <td class="p-4 text-gray-700">${new Date(sale.tanggal).toLocaleString('id-ID')}</td>
-                                    <td class="p-4 text-gray-700">${sale.nama_kasir}</td>
-                                    <td class="p-4 text-center text-gray-700">${sale.total_item}</td>
-                                    <td class="p-4 text-right font-semibold text-gray-800">${formatRupiah(sale.total_harga)}</td>
+                                <tr class="border-b hover:bg-gray-50 transition-all">
+                                    <td class="p-4">
+                                        <div class="font-mono text-blue-600 font-medium">${sale.no_transaksi}</div>
+                                        <div class="text-xs text-gray-500 mt-1">${new Date(sale.tanggal).toLocaleString('id-ID')}</div>
+                                    </td>
+                                    <td class="p-4">
+                                        <div class="flex items-center">
+                                            <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center mr-3">
+                                                <i class="fas fa-user-circle"></i>
+                                            </div>
+                                            <span class="font-medium text-gray-800">${sale.nama_kasir}</span>
+                                        </div>
+                                    </td>
                                     <td class="p-4 text-center">
-                                        <div class="flex justify-center gap-2">
+                                        <span class="inline-flex items-center justify-center px-3 py-1 rounded-full bg-purple-50 text-purple-700">
+                                            <i class="fas fa-box-open mr-1.5"></i>${sale.total_item}
+                                        </span>
+                                    </td>
+                                    <td class="p-4 text-right font-bold text-gray-800">${formatRupiah(sale.total_harga)}</td>
+                                    <td class="p-4 text-center">
+                                        <div class="flex justify-center">
                                             ${actionButtons}
                                         </div>
                                     </td>
@@ -285,7 +387,7 @@ $user_level = $_SESSION['pengguna']['level'];
                 }
 
                 currentTransactionId = id;
-                editTransactionModal.classList.remove('hidden');
+                openModalWithAnimation();
                 modalLoadingIndicator.classList.remove('hidden');
                 transactionDetails.classList.add('hidden');
 
@@ -472,18 +574,50 @@ $user_level = $_SESSION['pengguna']['level'];
                 }
             });
 
-            // Close modal functions
+            // Close modal functions with animation
             function closeEditModal() {
-                editTransactionModal.classList.add('hidden');
-                currentTransactionId = null;
+                // First animate the modal out
+                const modal = document.querySelector('.modal');
+                modal.style.transform = 'translateY(20px) scale(0.98)';
+                modal.style.opacity = '0';
+                
+                // Then fade out the backdrop and hide it
+                setTimeout(() => {
+                    editTransactionModal.style.opacity = '0';
+                    setTimeout(() => {
+                        editTransactionModal.classList.add('hidden');
+                        modal.style.transform = '';
+                        modal.style.opacity = '';
+                        editTransactionModal.style.opacity = '';
+                        currentTransactionId = null;
+                    }, 300); // Match the CSS transition time
+                }, 100);
+            }
+            
+            // Open modal with animation enhancement
+            window.openModalWithAnimation = () => {
+                editTransactionModal.classList.remove('hidden');
+                editTransactionModal.style.opacity = '0';
+                
+                // Ensure we render before animating
+                setTimeout(() => {
+                    editTransactionModal.style.opacity = '1';
+                }, 10);
             }
 
             closeModal.addEventListener('click', closeEditModal);
             cancelEditBtn.addEventListener('click', closeEditModal);
 
-            // Close modal when clicking outside
+            // Close modal when clicking outside with animation
             editTransactionModal.addEventListener('click', (e) => {
                 if (e.target === editTransactionModal) {
+                    closeEditModal();
+                }
+            });
+            
+            // Add keyboard support for ESC key to close modal
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && !editTransactionModal.classList.contains('hidden')) {
                     closeEditModal();
                 }
             });

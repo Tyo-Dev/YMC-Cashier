@@ -132,10 +132,106 @@ $saldo_kredit = 0;
         tbody tr:nth-child(even) {
             background: #f6f8fa;
         }
+
+        .summary {
+            margin-top: 20px;
+            border: 1px solid #000;
+            padding: 15px;
+            background: #f8f9fa;
+        }
+
+        .summary-item {
+            display: inline-block;
+            margin-right: 30px;
+        }
+
+        .summary-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 3px;
+        }
+
+        .summary-value {
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .back-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 24px;
+            background: #6366f1;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            box-shadow: 0 4px 6px rgba(99, 102, 241, 0.25);
+            transition: all 0.3s ease;
+            display: none;
+            z-index: 1000;
+        }
+
+        .back-button i {
+            display: inline-block;
+            transition: transform 0.3s ease;
+        }
+
+        .back-button:hover {
+            background: #4f46e5;
+            box-shadow: 0 6px 8px rgba(79, 70, 229, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .back-button:hover i {
+            transform: translateX(-3px);
+        }
+
+        .back-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2);
+        }
+
+        @media print {
+            .back-button {
+                display: none !important;
+            }
+        }
+
+        @media screen {
+            .back-button {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+        }
+
+        .total-row {
+            background-color: #e0e7ff;
+            font-weight: bold;
+        }
+
+        .total-row td {
+            border-top: 2px solid #000;
+        }
+
+        .print-footer {
+            margin-top: 20px;
+            font-size: 11px;
+            color: #666;
+            text-align: center;
+        }
     </style>
 </head>
 
 <body onload="window.print()">
+    <a href="../laporan_buku_besar.php" class="back-button">
+        <span>Kembali</span>
+    </a>
+
     <div class="header">
         <h1>Laporan Buku Besar</h1>
         <h2>Toko Yumna Moslem Collection</h2>
@@ -158,22 +254,68 @@ $saldo_kredit = 0;
             </tr>
         </thead>
         <tbody>
-            <?php foreach ($transaksis as $transaksi):
-                $saldo_debit += $transaksi['debit'];
-                $saldo_kredit += $transaksi['kredit'];
+            <?php
+            $total_debit = 0;
+            $total_kredit = 0;
+
+            if (count($transaksis) === 0):
             ?>
                 <tr>
-                    <td class="text-center"><?= date('d/m/Y', strtotime($transaksi['tanggal'])) ?></td>
-                    <td class="text-center"><?= htmlspecialchars($transaksi['id_transaksi']) ?></td>
-                    <td class="text-center"><?= htmlspecialchars($transaksi['rekening']) ?></td>
-                    <td class="text-right"><?= $transaksi['debit'] > 0 ? formatRupiah($transaksi['debit']) : '-' ?></td>
-                    <td class="text-right"><?= $transaksi['kredit'] > 0 ? formatRupiah($transaksi['kredit']) : '-' ?></td>
-                    <td class="text-right"><?= formatRupiah($saldo_debit) ?></td>
-                    <td class="text-right"><?= formatRupiah($saldo_kredit) ?></td>
+                    <td colspan="7" class="text-center" style="padding: 20px;">
+                        Tidak ada data transaksi untuk periode yang dipilih
+                    </td>
                 </tr>
-            <?php endforeach; ?>
+                <?php else:
+                foreach ($transaksis as $transaksi):
+                    $saldo_debit += $transaksi['debit'];
+                    $saldo_kredit += $transaksi['kredit'];
+                    $total_debit += $transaksi['debit'];
+                    $total_kredit += $transaksi['kredit'];
+                ?>
+                    <tr>
+                        <td class="text-center"><?= date('d/m/Y', strtotime($transaksi['tanggal'])) ?></td>
+                        <td class="text-center"><?= htmlspecialchars($transaksi['id_transaksi']) ?></td>
+                        <td class="text-center"><?= htmlspecialchars($transaksi['rekening']) ?></td>
+                        <td class="text-right"><?= $transaksi['debit'] > 0 ? formatRupiah($transaksi['debit']) : '-' ?></td>
+                        <td class="text-right"><?= $transaksi['kredit'] > 0 ? formatRupiah($transaksi['kredit']) : '-' ?></td>
+                        <td class="text-right"><?= formatRupiah($saldo_debit) ?></td>
+                        <td class="text-right"><?= formatRupiah($saldo_kredit) ?></td>
+                    </tr>
+            <?php
+                endforeach;
+            endif;
+            ?>
         </tbody>
+        <tfoot>
+            <tr class="total-row">
+                <td colspan="3" class="text-center">TOTAL</td>
+                <td class="text-right"><?= formatRupiah($total_debit) ?></td>
+                <td class="text-right"><?= formatRupiah($total_kredit) ?></td>
+                <td class="text-right"><?= formatRupiah($saldo_debit) ?></td>
+                <td class="text-right"><?= formatRupiah($saldo_kredit) ?></td>
+            </tr>
+        </tfoot>
     </table>
+
+    <!-- Summary Section -->
+    <div class="summary">
+        <div class="summary-item">
+            <div class="summary-label">Total Debit</div>
+            <div class="summary-value"><?= formatRupiah($total_debit) ?></div>
+        </div>
+        <div class="summary-item">
+            <div class="summary-label">Total Kredit</div>
+            <div class="summary-value"><?= formatRupiah($total_kredit) ?></div>
+        </div>
+        <div class="summary-item">
+            <div class="summary-label">Saldo Akhir</div>
+            <div class="summary-value"><?= formatRupiah(abs($total_debit - $total_kredit)) ?> (<?= $total_debit > $total_kredit ? 'Debit' : 'Kredit' ?>)</div>
+        </div>
+    </div>
+
+    <div class="print-footer">
+        Dicetak pada: <?= date('d/m/Y H:i:s') ?> | Toko Yumna Moslem Collection
+    </div>
 </body>
 
 </html>

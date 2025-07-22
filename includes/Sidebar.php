@@ -35,7 +35,6 @@ $menuItems = [
         'levels' => ['admin'],
         'submenu' => [
             ['label' => 'Pembelian', 'icon' => 'fas fa-dolly', 'url' => './transaksi_pembelian.php', 'levels' => ['admin']],
-            ['label' => 'Biaya Operasional', 'icon' => 'fa-regular fa-money-bill-1', 'url' => './transaksi_biaya.php', 'levels' => ['admin']],
         ]
     ],
     [
@@ -50,7 +49,6 @@ $menuItems = [
             ['label' => 'Daftar Pembelian', 'icon' => 'fas fa-dolly-flatbed', 'url' => './transaksi_pembelian.php', 'levels' => ['admin', 'pemilik']],
             ['label' => 'Daftar Barang Penjualan', 'icon' => 'fas fa-receipt', 'url' => './list_barang_penjualan.php', 'levels' => ['kasir', 'pemilik']],
             ['label' => 'Daftar Penjualan Barang', 'icon' => 'fas fa-receipt', 'url' => './list_transaksi_penjualan.php', 'levels' => ['admin']],
-            ['label' => 'Daftar Biaya Operasional', 'icon' => 'fas fa-file-invoice-dollar', 'url' => './transaksi_biaya.php', 'levels' => ['admin', 'pemilik']],
             ['label' => 'Daftar Transaksi Tunai', 'icon' => 'fas fa-hand-holding-usd', 'url' => './list_transaksi_penjualan.php', 'levels' => ['pemilik', 'kasir']],
         ]
     ],

@@ -385,18 +385,19 @@ document.addEventListener("DOMContentLoaded", function () {
   document
     .getElementById("filterButton")
     .addEventListener("click", function () {
-      document.getElementById("filterContent").classList.toggle("show");
+      document.getElementById("filterContent").classList.toggle("hidden");
     });
 
   // Close dropdown if clicked outside
   window.addEventListener("click", function (event) {
     if (
-      !event.target.matches(".filter-button") &&
-      !event.target.closest(".filter-content")
+      !event.target.matches("#filterButton") &&
+      !event.target.closest("#filterContent") &&
+      !event.target.closest("#filterButton")
     ) {
       const dropdown = document.getElementById("filterContent");
-      if (dropdown.classList.contains("show")) {
-        dropdown.classList.remove("show");
+      if (!dropdown.classList.contains("hidden")) {
+        dropdown.classList.add("hidden");
       }
     }
   });
