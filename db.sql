@@ -82,14 +82,7 @@ CREATE TABLE detail_pembelian (
     FOREIGN KEY (id_barang) REFERENCES barang(id_barang) ON DELETE CASCADE
 );
 
--- 9. Tabel Biaya Operasional
-CREATE TABLE biaya_operasional (
-    id_biaya INT(10) AUTO_INCREMENT PRIMARY KEY,
-    nama_biaya VARCHAR(100) NOT NULL,
-    tanggal DATE NOT NULL,
-    jumlah_biaya DECIMAL(10,2) NOT NULL,
-    keterangan VARCHAR(255) NOT NULL
-);
+
 
 -- Insert data default
 -- Kategori default
