@@ -47,6 +47,29 @@ tr:hover {
   z-index: 10;
 }
 
+/* Specific styling for filter dropdown */
+#filterContent {
+  position: absolute !important;
+  top: 100% !important;
+  right: 0 !important;
+  z-index: 9999 !important;
+  background: white !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+  min-width: 320px !important;
+  max-width: 400px !important;
+}
+
+#filterContent.hidden {
+  display: none !important;
+}
+
+#filterContent:not(.hidden) {
+  display: block !important;
+}
+
 .filter-content.show {
   display: block;
 }

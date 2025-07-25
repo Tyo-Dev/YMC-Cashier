@@ -22,10 +22,6 @@ document.addEventListener("DOMContentLoaded", function () {
     jumlahInput: document.getElementById("jumlah"),
     printTableBtn: document.getElementById("printTableBtn"),
     printInvoiceBtn: document.getElementById("printInvoiceBtn"),
-    searchInput: document.getElementById("search"),
-    pemasokFilter: document.getElementById("pemasok"),
-    tanggalAwalInput: document.getElementById("tanggal_awal"),
-    tanggalAkhirInput: document.getElementById("tanggal_akhir"),
     editButtons: document.querySelectorAll(".edit-pembelian"),
     viewButtons: document.querySelectorAll(".view-pembelian"),
     confirmDeleteBtn: document.getElementById("confirmDeleteBtn"),
@@ -95,7 +91,12 @@ document.addEventListener("DOMContentLoaded", function () {
           "flex justify-between items-center p-2 border-b";
         itemElement.innerHTML = `
                     <div class="flex-1">
-                        <span class="font-medium">${item.nama_barang}</span>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-xs bg-gray-100 px-2 py-1 rounded">ID: ${
+                              item.id_barang
+                            }</span>
+                            <span class="font-medium">${item.nama_barang}</span>
+                        </div>
                         <div class="text-sm text-gray-600">${
                           item.jumlah
                         } x ${formatRupiah(item.harga_beli)}</div>
@@ -172,34 +173,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     document.getElementById("editTotalHarga").textContent = formatRupiah(total);
-  }
-
-  /**
-   * Apply date filter
-   */
-  function applyDateFilter() {
-    const startDate = elements.tanggalAwalInput.value;
-    const endDate = elements.tanggalAkhirInput.value;
-
-    if (!startDate && !endDate) {
-      return;
-    }
-
-    const rows = document.querySelectorAll("#pembelianTableBody tr");
-    const start = startDate ? new Date(startDate) : new Date(0);
-    const end = endDate ? new Date(endDate) : new Date(8640000000000000);
-
-    rows.forEach((row) => {
-      const dateCell = row.querySelector("td:nth-child(3)").textContent;
-      const parts = dateCell.split("/");
-      const rowDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
-
-      if (rowDate >= start && rowDate <= end) {
-        row.style.display = "";
-      } else {
-        row.style.display = "none";
-      }
-    });
   }
 
   // ----- AJAX Functions -----
@@ -307,7 +280,14 @@ document.addEventListener("DOMContentLoaded", function () {
       totalHarga += parseFloat(item.subtotal);
       itemsHtml += `
                 <tr>
-                    <td class="px-4 py-2 border">${item.nama_barang}</td>
+                    <td class="px-4 py-2 border">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs bg-gray-100 px-2 py-1 rounded">${
+                              item.id_barang
+                            }</span>
+                            <span>${item.nama_barang}</span>
+                        </div>
+                    </td>
                     <td class="px-4 py-2 border text-right">${item.jumlah}</td>
                     <td class="px-4 py-2 border text-right">${formatRupiah(
                       item.harga_beli
@@ -344,7 +324,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 <table class="w-full border-collapse border mb-6">
                     <thead>
                         <tr class="bg-gray-100">
-                            <th class="px-4 py-2 border text-left">Item</th>
+                            <th class="px-4 py-2 border text-left">Kode & Item</th>
                             <th class="px-4 py-2 border text-right">Jumlah</th>
                             <th class="px-4 py-2 border text-right">Harga Satuan</th>
                             <th class="px-4 py-2 border text-right">Subtotal</th>
@@ -536,9 +516,14 @@ document.addEventListener("DOMContentLoaded", function () {
           itemsHtml += `
                         <div class="flex justify-between items-center p-2 border-b">
                             <div class="flex-1">
-                                <span class="font-medium">${
-                                  item.nama_barang
-                                }</span>
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-xs bg-gray-100 px-2 py-1 rounded">ID: ${
+                                      item.id_barang
+                                    }</span>
+                                    <span class="font-medium">${
+                                      item.nama_barang
+                                    }</span>
+                                </div>
                                 <div class="flex items-center mt-1">
                                     <input type="number" class="edit-item-qty w-16 px-2 py-1 border rounded mr-2"
                                         value="${
@@ -754,47 +739,21 @@ document.addEventListener("DOMContentLoaded", function () {
     window.print();
   });
 
-  // Client-side search functionality
-  elements.searchInput.addEventListener("input", function () {
-    const searchTerm = this.value.toLowerCase();
-    const rows = document.querySelectorAll("#pembelianTableBody tr");
+  // Client-side search functionality (jika diperlukan)
+  const searchInput = document.getElementById("search");
+  if (searchInput) {
+    searchInput.addEventListener("input", function () {
+      const searchTerm = this.value.toLowerCase();
+      const rows = document.querySelectorAll("#pembelianTableBody tr");
 
-    rows.forEach((row) => {
-      const text = row.textContent.toLowerCase();
-      if (text.includes(searchTerm)) {
-        row.style.display = "";
-      } else {
-        row.style.display = "none";
-      }
-    });
-  });
-
-  // Filter by pemasok
-  elements.pemasokFilter.addEventListener("change", function () {
-    const pemasokId = this.value;
-    const rows = document.querySelectorAll("#pembelianTableBody tr");
-
-    if (!pemasokId) {
-      // Show all rows if no pemasok is selected
       rows.forEach((row) => {
-        row.style.display = "";
+        const text = row.textContent.toLowerCase();
+        if (text.includes(searchTerm)) {
+          row.style.display = "";
+        } else {
+          row.style.display = "none";
+        }
       });
-      return;
-    }
-
-    // Otherwise, filter by pemasok ID
-    rows.forEach((row) => {
-      // Using data-pemasok-id attribute to filter
-      const rowPemasokId = row.getAttribute("data-pemasok-id");
-      if (rowPemasokId === pemasokId) {
-        row.style.display = "";
-      } else {
-        row.style.display = "none";
-      }
     });
-  });
-
-  // Date range filter
-  elements.tanggalAwalInput.addEventListener("change", applyDateFilter);
-  elements.tanggalAkhirInput.addEventListener("change", applyDateFilter);
+  }
 });

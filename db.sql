@@ -1,5 +1,5 @@
 -- Database Schema untuk Sistem Kasir YMC (Yumna Moslem Collection)
--- Berdasarkan analisis dokumen desain sistem
+-- Berdasarkan hasil export dan optimalisasi dari phpMyAdmin
 
 CREATE DATABASE IF NOT EXISTS db_ymc;
 USE db_ymc;
@@ -16,7 +16,7 @@ CREATE TABLE pengguna (
     nama_user VARCHAR(50) NOT NULL,
     username VARCHAR(50) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
-    level ENUM('admin', 'kasir','pemilik') NOT NULL
+    level ENUM('admin', 'kasir', 'pemilik') NOT NULL
 );
 
 -- 3. Tabel Pemasok (Supplier)
@@ -43,9 +43,12 @@ CREATE TABLE barang (
 -- 5. Tabel Penjualan
 CREATE TABLE penjualan (
     id_penjualan INT(10) AUTO_INCREMENT PRIMARY KEY,
+    no_transaksi VARCHAR(50) NOT NULL UNIQUE,
+    tanggal DATETIME NOT NULL,
     id_user INT(10) NOT NULL,
-    tanggal DATE NOT NULL,
-    total_harga_jual DECIMAL(10,2) NOT NULL,
+    total_harga INT(11) NOT NULL,
+    bayar INT(11) NOT NULL,
+    kembalian INT(11) NOT NULL,
     FOREIGN KEY (id_user) REFERENCES pengguna(id_user) ON DELETE CASCADE
 );
 
@@ -55,8 +58,8 @@ CREATE TABLE detail_penjualan (
     id_penjualan INT(10) NOT NULL,
     id_barang INT(10) NOT NULL,
     jumlah INT NOT NULL,
-    harga_satuan DECIMAL(10,2) NOT NULL,
-    subtotal_barang DECIMAL(10,2) NOT NULL,
+    harga_satuan INT(11) NOT NULL,
+    subtotal_barang INT(11) NOT NULL,
     FOREIGN KEY (id_penjualan) REFERENCES penjualan(id_penjualan) ON DELETE CASCADE,
     FOREIGN KEY (id_barang) REFERENCES barang(id_barang) ON DELETE CASCADE
 );
@@ -82,35 +85,34 @@ CREATE TABLE detail_pembelian (
     FOREIGN KEY (id_barang) REFERENCES barang(id_barang) ON DELETE CASCADE
 );
 
+-- Insert Data Default
 
-
--- Insert data default
--- Kategori default
+-- Kategori Default
 INSERT INTO kategori (kategori_barang) VALUES 
 ('Pakaian Pria'),
 ('Pakaian Wanita'),
 ('Aksesoris'),
 ('Perlengkapan Ibadah'),
-('Tas dan Dompet');
+('Tas dan Dompet'),
+('Pakaian Bayi');
 
--- User default (password: admin123 dan kasir123 - akan di-hash di aplikasi)
+-- User Default (gunakan bcrypt di aplikasi saat input/update password)
 INSERT INTO pengguna (nama_user, username, password, level) VALUES
 ('Admin Utama', 'admin', MD5('admin'), 'admin'),
 ('Kasir Toko', 'kasir', MD5('kasir'), 'kasir'),
 ('Pemilik Usaha', 'pemilik', MD5('pemilik'), 'pemilik');
 
-
--- Pemasok default
+-- Pemasok Default
 INSERT INTO pemasok (nama_pemasok, alamat, no_telepon) VALUES 
-('PT. Busana Muslim Indonesia', 'Jl. Raya Jakarta No. 123', '021-12345678'),
-('CV. Aksesoris Islami', 'Jl. Sudirman No. 456', '021-87654321'),
-('Toko Grosir Hijab', 'Jl. Malioboro No. 789', '0274-123456');
+('PT. Busana Muslim Indonesia', 'Jl. Raya Jakarta No. 123', '02112345678'),
+('CV. Aksesoris Islami', 'Jl. Sudirman No. 456', '02187654321'),
+('Toko Grosir Hijab', 'Jl. Malioboro No. 789', '0274123456'),
+('PT Muslim Busana Indonesia', 'JL Bantul KM 129', '0987654323456');
 
--- Barang contoh
+-- Barang Contoh
 INSERT INTO barang (id_kategori, nama_barang, harga_beli, margin, harga_jual, stok, satuan_barang) VALUES 
 (1, 'Kemeja Koko Putih', 75000, 25.00, 100000, 20, 'pcs'),
 (2, 'Hijab Segi Empat', 25000, 40.00, 35000, 50, 'pcs'),
 (3, 'Tasbih Kayu', 15000, 33.33, 20000, 30, 'pcs'),
 (4, 'Sajadah Turki', 45000, 33.33, 60000, 15, 'pcs'),
 (5, 'Tas Selempang Pria', 85000, 29.41, 110000, 10, 'pcs');
-

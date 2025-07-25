@@ -69,6 +69,40 @@ $pemasoks = $stmtPemasok->fetchAll(PDO::FETCH_ASSOC);
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/pembelian.css">
+    <style>
+        /* Additional styles for filter dropdown */
+        .filter-dropdown {
+            position: relative;
+        }
+
+        #filterContent {
+            position: absolute !important;
+            top: calc(100% + 8px) !important;
+            right: 0 !important;
+            z-index: 9999 !important;
+            background: white !important;
+            border: 1px solid #e5e7eb !important;
+            border-radius: 1rem !important;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+            min-width: 320px !important;
+            width: 320px !important;
+            padding: 1.5rem !important;
+        }
+
+        #filterContent.hidden {
+            display: none !important;
+        }
+
+        #filterContent:not(.hidden) {
+            display: block !important;
+        }
+
+        /* Ensure parent container allows overflow */
+        .max-w-7xl {
+            position: relative;
+            z-index: 1;
+        }
+    </style>
 </head>
 
 <body class="bg-gray-100">
@@ -77,17 +111,52 @@ $pemasoks = $stmtPemasok->fetchAll(PDO::FETCH_ASSOC);
     <main class="flex-grow p-8">
         <div class="max-w-7xl mx-auto">
             <div class="flex justify-between items-center mb-6">
-                <h1 class="text-2xl font-bold text-gray-800">Transaksi Pembelian</h1>
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-800">Transaksi Pembelian</h1>
+                    <?php
+                    $activeFilters = [];
+                    if (!empty($_GET['pemasok'])) {
+                        $selectedPemasok = array_filter($pemasoks, function ($p) {
+                            return $p['id_pemasok'] == $_GET['pemasok'];
+                        });
+                        if ($selectedPemasok) {
+                            $pemasokName = reset($selectedPemasok)['nama_pemasok'];
+                            $activeFilters[] = "Pemasok: " . $pemasokName;
+                        }
+                    }
+                    if (!empty($_GET['tanggal_awal'])) {
+                        $activeFilters[] = "Dari: " . date('d/m/Y', strtotime($_GET['tanggal_awal']));
+                    }
+                    if (!empty($_GET['tanggal_akhir'])) {
+                        $activeFilters[] = "Sampai: " . date('d/m/Y', strtotime($_GET['tanggal_akhir']));
+                    }
+                    if (!empty($activeFilters)): ?>
+                        <div class="flex items-center gap-2 mt-2">
+                            <span class="text-sm text-gray-600">Filter aktif:</span>
+                            <?php foreach ($activeFilters as $filter): ?>
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    <?= $filter ?>
+                                </span>
+                            <?php endforeach; ?>
+                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                <?= count($pembelians) ?> data ditemukan
+                            </span>
+                            <a href="<?= $_SERVER['PHP_SELF'] ?>" class="text-sm text-red-600 hover:text-red-800 ml-2">
+                                <i class="fas fa-times"></i> Hapus Filter
+                            </a>
+                        </div>
+                    <?php endif; ?>
+                </div>
 
                 <div class="flex items-center space-x-3">
                     <div class="filter-dropdown relative">
-                        <button id="filterButton" class="flex items-center gap-2 px-6 py-3 bg-white text-gray-700 rounded-xl border border-gray-200 hover:bg-gray-50 transition-all duration-200 shadow-sm font-medium">
+                        <button id="filterButton" onclick="toggleFilter()" class="flex items-center gap-2 px-6 py-3 bg-white text-gray-700 rounded-xl border border-gray-200 hover:bg-gray-50 transition-all duration-200 shadow-sm font-medium">
                             <i class="fas fa-filter text-gray-400"></i>
                             <span>Filter</span>
                             <i class="fas fa-chevron-down text-gray-400 text-sm"></i>
                         </button>
-                        <div id="filterContent" class="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-lg border border-gray-100 p-6 z-50 hidden">
-                            <form action="" method="get" class="space-y-5">
+                        <div id="filterContent" class="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-lg border border-gray-100 p-6 z-50 hidden" style="min-height: 200px;">
+                            <form action="" method="get" class="space-y-5" id="filterForm">
                                 <div>
                                     <label for="pemasok" class="block text-sm font-semibold text-gray-700 mb-2">Pemasok</label>
                                     <div class="relative">
@@ -122,7 +191,7 @@ $pemasoks = $stmtPemasok->fetchAll(PDO::FETCH_ASSOC);
                                         class="w-full py-3 px-4 border border-transparent rounded-xl shadow-md text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                                         Terapkan
                                     </button>
-                                    <button type="reset"
+                                    <button type="button" id="resetFilterBtn"
                                         class="w-full py-3 px-4 border border-gray-300 rounded-xl shadow-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
                                         Reset
                                     </button>
@@ -160,7 +229,7 @@ $pemasoks = $stmtPemasok->fetchAll(PDO::FETCH_ASSOC);
                                 <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-100">
+                        <tbody class="divide-y divide-gray-100" id="pembelianTableBody">
                             <?php if (count($pembelians) > 0): ?>
                                 <?php foreach ($pembelians as $pembelian): ?>
                                     <?php
@@ -427,11 +496,25 @@ $pemasoks = $stmtPemasok->fetchAll(PDO::FETCH_ASSOC);
             const filterButton = document.getElementById('filterButton');
             const filterContent = document.getElementById('filterContent');
 
+            console.log('Filter button:', filterButton);
+            console.log('Filter content:', filterContent);
+
             if (filterButton && filterContent) {
                 filterButton.addEventListener('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
-                    filterContent.classList.toggle('hidden');
+
+                    console.log('Filter button clicked');
+
+                    // Toggle visibility
+                    const isHidden = filterContent.classList.contains('hidden');
+                    if (isHidden) {
+                        filterContent.classList.remove('hidden');
+                        console.log('Showing filter dropdown');
+                    } else {
+                        filterContent.classList.add('hidden');
+                        console.log('Hiding filter dropdown');
+                    }
                 });
 
                 // Close dropdown when clicking outside
@@ -440,8 +523,79 @@ $pemasoks = $stmtPemasok->fetchAll(PDO::FETCH_ASSOC);
                         filterContent.classList.add('hidden');
                     }
                 });
+
+                // Also handle form submission properly
+                const filterForm = filterContent.querySelector('form');
+                if (filterForm) {
+                    filterForm.addEventListener('submit', function(e) {
+                        console.log('Filter form submitted');
+                        // Let the form submit naturally - don't prevent default
+                    });
+                }
+
+                // Handle reset button
+                const resetButton = document.getElementById('resetFilterBtn');
+                if (resetButton) {
+                    resetButton.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        console.log('Reset button clicked');
+                        resetFilter();
+                    });
+                }
             }
+
+            // Update filter button appearance if filter is active
+            updateFilterButtonAppearance();
+
+            // Test dropdown functionality
+            setTimeout(function() {
+                const testButton = document.getElementById('filterButton');
+                const testContent = document.getElementById('filterContent');
+                console.log('Test - Button found:', !!testButton);
+                console.log('Test - Content found:', !!testContent);
+
+                if (testContent) {
+                    console.log('Test - Content classes:', testContent.className);
+                    console.log('Test - Content style.display:', testContent.style.display);
+                }
+            }, 1000);
         });
+
+        // Function to reset filter
+        function resetFilter() {
+            console.log('Reset filter called');
+            // Clear all form fields
+            document.getElementById('pemasok').value = '';
+            document.getElementById('tanggal_awal').value = '';
+            document.getElementById('tanggal_akhir').value = '';
+
+            // Redirect to page without any query parameters
+            window.location.href = window.location.pathname;
+        }
+
+        // Function to update filter button appearance
+        function updateFilterButtonAppearance() {
+            const filterButton = document.getElementById('filterButton');
+            const params = new URLSearchParams(window.location.search);
+            const hasFilter = params.has('pemasok') || params.has('tanggal_awal') || params.has('tanggal_akhir');
+
+            if (hasFilter && filterButton) {
+                filterButton.classList.add('bg-blue-50', 'text-blue-700', 'border-blue-200');
+                filterButton.classList.remove('bg-white', 'text-gray-700', 'border-gray-200');
+            }
+        }
+
+        // Fallback function to show/hide filter manually
+        function toggleFilter() {
+            const filterContent = document.getElementById('filterContent');
+            if (filterContent) {
+                if (filterContent.classList.contains('hidden')) {
+                    filterContent.classList.remove('hidden');
+                } else {
+                    filterContent.classList.add('hidden');
+                }
+            }
+        }
     </script>
 
     <!-- External JavaScript -->
