@@ -333,8 +333,9 @@ $pemasoks = $stmtPemasok->fetchAll(PDO::FETCH_ASSOC);
                                             <option value="<?= $barang['id_barang'] ?>"
                                                 data-harga="<?= $barang['harga_beli'] ?>"
                                                 data-stok="<?= $barang['stok'] ?>"
-                                                data-nama="<?= htmlspecialchars($barang['nama_barang']) ?>">
-                                                <?= htmlspecialchars($barang['nama_barang']) ?> - Stok: <?= $barang['stok'] ?>
+                                                data-nama="<?= htmlspecialchars($barang['nama_barang']) ?>"
+                                                data-kode="<?= htmlspecialchars($barang['id_barang']) ?>">
+                                                [<?= htmlspecialchars($barang['id_barang']) ?>] <?= htmlspecialchars($barang['nama_barang']) ?> - Stok: <?= $barang['stok'] ?>
                                             </option>
                                         <?php endforeach; ?>
                                     </select>

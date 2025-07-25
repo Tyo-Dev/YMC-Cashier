@@ -25,6 +25,7 @@ function formatRupiah($angka)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $user_level === 'admin') {
     try {
         if ($_POST['action'] === 'add') {
+            $id_barang = validateInput($_POST['id_barang']); // Kode barang manual
             $nama_barang = validateInput($_POST['nama_barang']);
             $id_kategori = filter_var($_POST['id_kategori'], FILTER_VALIDATE_INT);
             $harga_beli = filter_var($_POST['harga_beli'], FILTER_VALIDATE_INT);
@@ -33,11 +34,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $user_level === 'admin') {
             $stok = filter_var($_POST['stok'], FILTER_VALIDATE_INT);
             $satuan = validateInput($_POST['satuan']);
 
-            $stmt = $pdo->prepare("INSERT INTO barang (nama_barang, id_kategori, harga_beli, margin, harga_jual, stok, satuan_barang) VALUES (?, ?, ?, ?, ?, ?, ?)");
-            $stmt->execute([$nama_barang, $id_kategori, $harga_beli, $margin, $harga_jual, $stok, $satuan]);
+            // Validasi id_barang tidak boleh kosong dan harus unik
+            if (empty($id_barang)) {
+                throw new Exception('Kode barang tidak boleh kosong');
+            }
+
+            // Cek apakah id_barang sudah ada
+            $stmtCheck = $pdo->prepare("SELECT COUNT(*) FROM barang WHERE id_barang = ?");
+            $stmtCheck->execute([$id_barang]);
+            if ($stmtCheck->fetchColumn() > 0) {
+                throw new Exception('Kode barang sudah digunakan, silakan gunakan kode lain');
+            }
+
+            // Insert dengan id_barang manual (non auto-increment)
+            $stmt = $pdo->prepare("INSERT INTO barang (id_barang, nama_barang, id_kategori, harga_beli, margin, harga_jual, stok, satuan_barang) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([$id_barang, $nama_barang, $id_kategori, $harga_beli, $margin, $harga_jual, $stok, $satuan]);
             $notification = ['type' => 'success', 'message' => 'Barang berhasil ditambahkan.'];
         } elseif ($_POST['action'] === 'edit') {
-            $id_barang = filter_var($_POST['id_barang'], FILTER_VALIDATE_INT);
+            $original_id_barang = validateInput($_POST['original_id_barang']); // ID lama untuk WHERE clause
             $nama_barang = validateInput($_POST['nama_barang']);
             $id_kategori = filter_var($_POST['id_kategori'], FILTER_VALIDATE_INT);
             $harga_beli = filter_var($_POST['harga_beli'], FILTER_VALIDATE_INT);
@@ -46,8 +60,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $user_level === 'admin') {
             $stok = filter_var($_POST['stok'], FILTER_VALIDATE_INT);
             $satuan = validateInput($_POST['satuan']);
 
+            // Untuk edit, id_barang (kode barang) tidak dapat diubah
+            // Update tanpa mengubah id_barang
             $stmt = $pdo->prepare("UPDATE barang SET nama_barang = ?, id_kategori = ?, harga_beli = ?, margin = ?, harga_jual = ?, stok = ?, satuan_barang = ? WHERE id_barang = ?");
-            $stmt->execute([$nama_barang, $id_kategori, $harga_beli, $margin, $harga_jual, $stok, $satuan, $id_barang]);
+            $stmt->execute([$nama_barang, $id_kategori, $harga_beli, $margin, $harga_jual, $stok, $satuan, $original_id_barang]);
             $notification = ['type' => 'success', 'message' => 'Data barang berhasil diperbarui.'];
         } elseif ($_POST['action'] === 'delete') {
             $id_barang = filter_var($_POST['id_barang'], FILTER_VALIDATE_INT);
@@ -72,11 +88,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $user_level === 'admin') {
 $stmt = $pdo->query("SELECT * FROM kategori ORDER BY kategori_barang");
 $kategoris = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Ambil data barang dengan informasi kategori
+// Ambil data barang dengan informasi kategori, diurutkan berdasarkan id_barang
 $stmt = $pdo->query("SELECT b.*, k.kategori_barang 
                     FROM barang b 
                     JOIN kategori k ON b.id_kategori = k.id_kategori 
-                    ORDER BY b.nama_barang");
+                    ORDER BY b.id_barang");
 $barangs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
@@ -103,6 +119,10 @@ $barangs = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <h1 class="text-3xl sm:text-4xl font-bold text-gray-800 bg-white py-3 px-6 rounded-2xl shadow-md border border-gray-100">
                             Data Barang
                         </h1>
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-sm">
+                            <i class="fas fa-info-circle text-blue-500 mr-1"></i>
+                            <span class="text-blue-700">Kode barang input manual</span>
+                        </div>
                     </div>
                     <?php if ($user_level === 'admin'): ?>
                         <button onclick="openModal('add')"
@@ -167,7 +187,11 @@ $barangs = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <tbody class="divide-y divide-gray-100" id="tableBody">
                                 <?php foreach ($barangs as $barang): ?>
                                     <tr class="hover:bg-gray-50/50 transition-colors duration-150">
-                                        <td class="px-6 py-4 text-base text-gray-600 font-medium"><?= str_pad($barang['id_barang'], 6, '0', STR_PAD_LEFT) ?></td>
+                                        <td class="px-6 py-4 text-base text-gray-600 font-medium">
+                                            <span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-lg font-mono">
+                                                <?= htmlspecialchars($barang['id_barang']) ?>
+                                            </span>
+                                        </td>
                                         <td class="px-6 py-4">
                                             <span class="text-gray-800 font-medium text-base bg-gray-50 px-3 py-1 rounded-lg">
                                                 <?= htmlspecialchars($barang['nama_barang']) ?>
@@ -259,9 +283,17 @@ $barangs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                 <form id="barangForm" method="POST" class="space-y-6">
                     <input type="hidden" name="action" id="formAction">
-                    <input type="hidden" name="id_barang" id="formIdBarang">
+                    <input type="hidden" name="original_id_barang" id="formOriginalIdBarang">
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Kode Barang</label>
+                            <input type="text" id="formIdBarang" name="id_barang" required
+                                placeholder="Contoh: hanya bisa angka : 2551"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 font-mono">
+                            <p class="text-xs text-gray-500 mt-1">Masukkan kode unik untuk barang ini</p>
+                        </div>
+
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Nama Barang</label>
                             <input type="text" id="formNamaBarang" name="nama_barang" required
@@ -338,7 +370,8 @@ $barangs = $stmt->fetchAll(PDO::FETCH_ASSOC);
             const modalTitle = document.getElementById('modalTitle');
             const form = document.getElementById('barangForm');
             const formAction = document.getElementById('formAction');
-            const formIdBarang = document.getElementById('formIdBarang');
+            const formOriginalIdBarang = document.getElementById('formOriginalIdBarang');
+            const formIdBarang = document.getElementById('formIdBarang'); // Input kode barang
             const formNamaBarang = document.getElementById('formNamaBarang');
             const formHargaBeli = document.getElementById('formHargaBeli');
             const formMargin = document.getElementById('formMargin');
@@ -356,17 +389,26 @@ $barangs = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     modalTitle.textContent = 'Tambah Barang Baru';
                     formAction.value = 'add';
                     form.reset();
+                    // Enable kode barang field for new items
+                    formIdBarang.readOnly = false;
+                    formIdBarang.classList.remove('bg-gray-100');
+                    formIdBarang.placeholder = 'Contoh: hanya bisa angka : 2551';
                 } else if (mode === 'edit' && data) {
                     modalTitle.textContent = 'Edit Data Barang';
                     formAction.value = 'edit';
-                    formIdBarang.value = data.id_barang;
+                    formOriginalIdBarang.value = data.id_barang; // Simpan ID lama untuk WHERE clause
+                    formIdBarang.value = data.id_barang; // Tampilkan kode barang saat ini
                     formNamaBarang.value = data.nama_barang;
                     document.getElementById('formKategori').value = data.id_kategori;
                     formHargaBeli.value = data.harga_beli;
                     formMargin.value = data.margin;
                     formHargaJual.value = data.harga_jual;
-                    formStok.value = data.stok;
+                    document.getElementById('formStok').value = data.stok;
                     document.getElementById('formSatuan').value = data.satuan_barang;
+                    // Disable kode barang field for editing (prevent changing existing codes)
+                    formIdBarang.readOnly = true;
+                    formIdBarang.classList.add('bg-gray-100');
+                    formIdBarang.placeholder = 'Kode tidak dapat diubah';
                 }
                 modal.classList.remove('hidden');
             }
