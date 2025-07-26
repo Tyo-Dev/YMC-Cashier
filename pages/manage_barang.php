@@ -119,10 +119,6 @@ $barangs = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <h1 class="text-3xl sm:text-4xl font-bold text-gray-800 bg-white py-3 px-6 rounded-2xl shadow-md border border-gray-100">
                             Data Barang
                         </h1>
-                        <div class="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-sm">
-                            <i class="fas fa-info-circle text-blue-500 mr-1"></i>
-                            <span class="text-blue-700">Kode barang input manual</span>
-                        </div>
                     </div>
                     <?php if ($user_level === 'admin'): ?>
                         <button onclick="openModal('add')"
@@ -145,13 +141,24 @@ $barangs = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <!-- Search Bar -->
                 <div class="mb-8">
                     <div class="flex gap-4">
-                        <div class="flex-1">
-                            <div class="relative">
+                        <div class="flex-1 flex gap-4">
+                            <div class="relative flex-1">
                                 <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-lg"></i>
                                 <input type="text"
                                     id="searchInput"
                                     placeholder="Cari Barang..."
                                     class="w-full pl-12 pr-4 py-3 text-lg rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all bg-white/50">
+                            </div>
+                            <div class="w-64">
+                                <select id="categoryFilter"
+                                    class="w-full px-4 py-3 text-lg rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all bg-white/50">
+                                    <option value="">Semua Kategori</option>
+                                    <?php foreach ($kategoris as $kategori): ?>
+                                        <option value="<?= htmlspecialchars($kategori['kategori_barang']) ?>">
+                                            <?= htmlspecialchars($kategori['kategori_barang']) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
                             </div>
                         </div>
                         <?php if ($user_level === 'pemilik'): ?>
@@ -250,21 +257,32 @@ $barangs = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </main>
     </div>
 
-    <!-- Script untuk fungsi pencarian - tersedia untuk semua level -->
+    <!-- Script untuk fungsi pencarian dan filter -->
     <script>
         const searchInput = document.getElementById('searchInput');
+        const categoryFilter = document.getElementById('categoryFilter');
         const tableBody = document.getElementById('tableBody');
 
-        // Filter table - fungsi search
-        searchInput.addEventListener('input', function(e) {
-            const searchTerm = e.target.value.toLowerCase();
+        function filterTable() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const selectedCategory = categoryFilter.value.toLowerCase();
             const rows = tableBody.getElementsByTagName('tr');
 
             for (let row of rows) {
                 const text = row.textContent.toLowerCase();
-                row.style.display = text.includes(searchTerm) ? '' : 'none';
+                const categoryCell = row.getElementsByTagName('td')[2]; // Index 2 is the category column
+                const category = categoryCell.textContent.toLowerCase();
+
+                const matchesSearch = text.includes(searchTerm);
+                const matchesCategory = selectedCategory === '' || category === selectedCategory;
+
+                row.style.display = matchesSearch && matchesCategory ? '' : 'none';
             }
-        });
+        }
+
+        // Event listeners for both search and category filter
+        searchInput.addEventListener('input', filterTable);
+        categoryFilter.addEventListener('change', filterTable);
     </script>
 
     <?php if ($user_level === 'admin'): ?>
@@ -284,7 +302,6 @@ $barangs = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <form id="barangForm" method="POST" class="space-y-6">
                     <input type="hidden" name="action" id="formAction">
                     <input type="hidden" name="original_id_barang" id="formOriginalIdBarang">
-
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Kode Barang</label>

@@ -158,11 +158,14 @@ foreach ($pemasoks as $pemasok) {
                                         <td class="px-6 py-4 text-base text-gray-600"><?= htmlspecialchars($pemasok['alamat']) ?></td>
                                         <td class="px-6 py-4 text-base text-gray-600"><?= htmlspecialchars($pemasok['no_telepon']) ?></td>
                                         <td class="px-6 py-4">
-                                            <span class="px-3 py-1.5 text-base rounded-xl inline-flex items-center gap-2 font-medium 
-                                                <?= $transaksi_pemasok[$pemasok['id_pemasok']] > 0 ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-gray-100 text-gray-600 border border-gray-200' ?>">
+                                            <a href="transaksi_pembelian.php?pemasok=<?= $pemasok['id_pemasok'] ?>"
+                                                class="px-3 py-1.5 text-base rounded-xl inline-flex items-center gap-2 font-medium cursor-pointer hover:opacity-80 transition-opacity
+                                                <?= $transaksi_pemasok[$pemasok['id_pemasok']] > 0
+                                                    ? 'bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100'
+                                                    : 'bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200' ?>">
                                                 <i class="fas fa-receipt"></i>
                                                 <?= $transaksi_pemasok[$pemasok['id_pemasok']] ?>
-                                            </span>
+                                            </a>
                                         </td>
                                         <?php if ($user_level === 'admin') : ?>
                                             <td class="px-6 py-4">
