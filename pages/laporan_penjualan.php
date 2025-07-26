@@ -25,7 +25,7 @@ $query = "
     FROM penjualan p
     JOIN detail_penjualan dp ON p.id_penjualan = dp.id_penjualan
     JOIN barang b ON dp.id_barang = b.id_barang
-    WHERE p.tanggal BETWEEN ? AND ?
+    WHERE DATE(p.tanggal) BETWEEN ? AND ?
     ORDER BY p.tanggal ASC, b.id_barang ASC
 ";
 

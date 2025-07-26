@@ -24,7 +24,7 @@ $query = "
     FROM penjualan p
     JOIN detail_penjualan dp ON p.id_penjualan = dp.id_penjualan
     JOIN barang b ON dp.id_barang = b.id_barang
-    WHERE p.tanggal BETWEEN ? AND ?
+    WHERE DATE(p.tanggal) BETWEEN ? AND ?
     ORDER BY p.tanggal ASC, b.id_barang ASC
 ";
 
@@ -68,68 +68,70 @@ function formatRupiah($angka)
             margin: 2cm;
         }
 
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.4;
-            margin: 0;
-            padding: 0;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .header h1 {
-            font-size: 18px;
-            font-weight: bold;
-            margin: 0 0 5px 0;
-        }
-
-        .header h2 {
-            font-size: 16px;
-            margin: 0 0 5px 0;
-        }
-
-        .header p {
-            font-size: 12px;
-            margin: 0;
-        }
-
+        /* Reset table styles */
         table {
             width: 100%;
-            border-collapse: collapse;
+            border-collapse: collapse !important;
+            border: 2px solid black !important;
             margin-top: 20px;
             font-size: 12px;
         }
 
+        /* Strengthen all borders */
         th,
         td {
-            border: 1px solid #000;
+            border: 1px solid black !important;
             padding: 8px;
             text-align: left;
+            position: relative !important;
         }
 
+        /* Header styling */
         th {
-            background-color: #f0f0f0;
-        }
-
-        .subtotal-row td {
+            background-color: #f0f0f0 !important;
             font-weight: bold;
-            background-color: #f9f9f9;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
         }
 
+        /* Total row styling */
         .total-row td {
             font-weight: bold;
-            border-top: 2px solid #000;
+            border-top: 3px double black !important;
         }
 
+        /* Text alignment */
         .text-right {
-            text-align: right;
+            text-align: right !important;
         }
 
         .currency {
-            text-align: right;
+            text-align: right !important;
+        }
+
+        /* Print-specific styles */
+        @media print {
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            table {
+                page-break-inside: auto !important;
+            }
+
+            tr {
+                page-break-inside: avoid !important;
+                page-break-after: auto !important;
+            }
+
+            thead {
+                display: table-header-group !important;
+            }
+
+            tfoot {
+                display: table-footer-group !important;
+            }
         }
     </style>
 </head>
@@ -157,9 +159,9 @@ function formatRupiah($angka)
             <?php
             $current_tanggal = '';
             foreach ($penjualans as $penjualan):
-               
+
                 $current_tanggal = $penjualan['tanggal'];
-                ?>
+            ?>
                 <tr>
                     <td><?= formatTanggal($penjualan['tanggal']) ?></td>
                     <td><?= $penjualan['kode_barang'] ?></td>
@@ -172,7 +174,7 @@ function formatRupiah($angka)
             <?php endforeach;
             // Print last subtotal
             if (!empty($penjualans)): ?>
-                
+
             <?php endif; ?>
             <tr class="total-row">
                 <td colspan="6" class="text-center">Total Penjualan</td>
