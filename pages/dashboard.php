@@ -373,7 +373,7 @@ try {
                                 </div>
                             </div>
 
-                            <div class="bg-white rounded-xl shadow-sm p-6 flex items-center gap-4 card-hover <?= $data['stok_kritis'] > 0 ? 'pulse' : '' ?> stats-card">
+                            <a href="manage_barang.php?filter=low_stock" class="bg-white rounded-xl shadow-sm p-6 flex items-center gap-4 card-hover <?= $data['stok_kritis'] > 0 ? 'pulse' : '' ?> stats-card">
                                 <div class="bg-red-100 text-red-600 p-3 rounded-full stats-icon">
                                     <i class="fas fa-exclamation-triangle fa-lg"></i>
                                 </div>
@@ -381,7 +381,7 @@ try {
                                     <p class="text-sm text-gray-500">Stok Barang Kritis</p>
                                     <p class="text-xl sm:text-2xl font-bold text-gray-800 stats-value"><?= $data['stok_kritis'] ?> Item</p>
                                 </div>
-                            </div>
+                            </a>
                         </div>
 
                         <!-- Quick Access Buttons -->
@@ -403,7 +403,7 @@ try {
                                     <p class="font-medium text-gray-700">Tambah Pembelian</p>
                                 </a>
 
-                                <a href="manage_user.php" class="bg-white rounded-xl shadow-sm p-5 text-center transition-all duration-300 hover:shadow-md hover:-translate-y-1">
+                                <a href="data_pengguna.php" class="bg-white rounded-xl shadow-sm p-5 text-center transition-all duration-300 hover:shadow-md hover:-translate-y-1">
                                     <i class="fas fa-users-cog fa-2x text-orange-500 mb-3"></i>
                                     <p class="font-medium text-gray-700">Kelola Pengguna</p>
                                 </a>

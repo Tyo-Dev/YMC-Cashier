@@ -263,26 +263,49 @@ $barangs = $stmt->fetchAll(PDO::FETCH_ASSOC);
         const categoryFilter = document.getElementById('categoryFilter');
         const tableBody = document.getElementById('tableBody');
 
+        // Modifikasi fungsi filterTable yang sudah ada
         function filterTable() {
             const searchTerm = searchInput.value.toLowerCase();
             const selectedCategory = categoryFilter.value.toLowerCase();
+            const urlParams = new URLSearchParams(window.location.search);
+            const isLowStockFilter = urlParams.get('filter') === 'low_stock';
             const rows = tableBody.getElementsByTagName('tr');
 
             for (let row of rows) {
                 const text = row.textContent.toLowerCase();
-                const categoryCell = row.getElementsByTagName('td')[2]; // Index 2 is the category column
+                const categoryCell = row.getElementsByTagName('td')[2]; // Index 2 adalah kolom kategori
+                const stokCell = row.getElementsByTagName('td')[6]; // Index 6 adalah kolom stok
                 const category = categoryCell.textContent.toLowerCase();
+                const stokValue = parseInt(stokCell.textContent.trim());
 
                 const matchesSearch = text.includes(searchTerm);
                 const matchesCategory = selectedCategory === '' || category === selectedCategory;
+                const matchesStockFilter = !isLowStockFilter || stokValue < 10;
 
-                row.style.display = matchesSearch && matchesCategory ? '' : 'none';
+                row.style.display = matchesSearch && matchesCategory && matchesStockFilter ? '' : 'none';
             }
         }
 
         // Event listeners for both search and category filter
         searchInput.addEventListener('input', filterTable);
         categoryFilter.addEventListener('change', filterTable);
+
+        // Fungsi untuk mengecek parameter URL saat halaman dimuat
+        function checkUrlParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('filter') === 'low_stock') {
+                // Set filter untuk menampilkan hanya stok menipis
+                const rows = tableBody.getElementsByTagName('tr');
+                for (let row of rows) {
+                    const stokCell = row.getElementsByTagName('td')[6]; // Index 6 adalah kolom stok
+                    const stokValue = parseInt(stokCell.textContent.trim());
+                    row.style.display = stokValue < 10 ? '' : 'none';
+                }
+            }
+        }
+
+        // Panggil fungsi saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', checkUrlParams);
     </script>
 
     <?php if ($user_level === 'admin'): ?>
@@ -441,11 +464,12 @@ $barangs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             // Menutup modal saat klik di luar
             modal.addEventListener('click', (e) => {
-                if (e.target === modal) closeModal();
+                if (e.target === modal) {
+                    closeModal();
+                }
             });
         </script>
     <?php endif; ?>
-
 </body>
 
 </html>
