@@ -157,8 +157,8 @@ function formatRupiah($angka)
                 <img src="../../assets/images/logo.png" alt="Logo YMC Cashier">
             </div>
             <div class="company-name">YMC Cashier</div>
-            <div>Jl. Raya Utama No. 123, Jakarta</div>
-            <div>Telp: 021-12345678</div>
+            <div>Jl. KH. Ali Maksum No.314, Krapyak Kulon, Panggungharjo, Kec. Sewon, Kota Yogyakarta, Daerah Istimewa Yogyakarta 55188</div>
+            <div>Telp:  0888-5688-140</div>
         </div>
 
         <hr>
