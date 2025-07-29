@@ -98,9 +98,14 @@ INSERT INTO kategori (kategori_barang) VALUES
 
 -- User Default (gunakan bcrypt di aplikasi saat input/update password)
 INSERT INTO pengguna (nama_user, username, password, level) VALUES
-('Admin Utama', 'admin', MD5('admin'), 'admin'),
-('Kasir Toko', 'kasir', MD5('kasir'), 'kasir'),
-('Pemilik Usaha', 'pemilik', MD5('pemilik'), 'pemilik');
+('Admin Utama', 'admin','$2y$10$k0cfiEyQewg3d1O48chePOVw27BT1S.Rvpwss.D1AgjFaWjkCRDv.', 'admin'),
+('Kasir Toko', 'kasir', '$2y$10$DNm36EuDqlzVHNbuHILwbunmUYetreAPMoPau52A0iRsPxh3n1mZy', 'kasir'),
+('Pemilik Usaha', 'pemilik', '$2y$10$mE3951byHIY2X7TFjX7vt.U9JqxeXhZ2AdklXq5y62nhErxmy8Is.', 'pemilik');
+
+-- Pengguna Default
+-- user : admin,  pw:admin
+-- user : kasir,  pw:kasir
+-- user : pemilik,pw:pemilik 
 
 -- Pemasok Default
 INSERT INTO pemasok (nama_pemasok, alamat, no_telepon) VALUES 
