@@ -412,18 +412,21 @@ function generateNoTransaksi()
         });
 
         function addToKeranjang(item) {
-            // Check if item already exists
+            // Konversi ke float untuk memastikan kompatibilitas
+            const harga = parseFloat(item.harga_jual) || 0;
+
             const existingItem = keranjang.find(i => i.id_barang === item.id_barang);
             if (existingItem) {
-                existingItem.qty += 1;
-                existingItem.subtotal = existingItem.qty * existingItem.harga_jual;
+                existingItem.qty = parseInt(existingItem.qty) + 1;
+                // Gunakan toFixed(2) untuk menghindari masalah floating point
+                existingItem.subtotal = (existingItem.qty * harga).toFixed(2);
             } else {
                 keranjang.push({
                     id_barang: item.id_barang,
                     nama_barang: item.nama_barang,
-                    harga_jual: item.harga_jual,
+                    harga_jual: harga,
                     qty: 1,
-                    subtotal: item.harga_jual
+                    subtotal: harga.toFixed(2)
                 });
             }
 
@@ -436,7 +439,9 @@ function generateNoTransaksi()
             const tbody = document.getElementById('keranjangItems');
             const emptyCart = document.getElementById('emptyCart');
             tbody.innerHTML = '';
-            totalTransaksi = 0;
+
+            // Reset total dan gunakan parseFloat
+            let total = 0;
 
             if (keranjang.length === 0) {
                 emptyCart.classList.remove('hidden');
@@ -444,6 +449,10 @@ function generateNoTransaksi()
                 emptyCart.classList.add('hidden');
 
                 keranjang.forEach((item, index) => {
+                    // Konversi nilai ke number untuk kalkulasi yang aman
+                    const subtotal = parseFloat(item.subtotal) || 0;
+                    total += subtotal;
+
                     const tr = document.createElement('tr');
                     tr.className = 'hover:bg-gray-50 transition-colors';
                     tr.innerHTML = `
@@ -471,23 +480,31 @@ function generateNoTransaksi()
                         </td>
                     `;
                     tbody.appendChild(tr);
-                    totalTransaksi += item.subtotal;
                 });
             }
 
-            document.getElementById('totalItems').textContent = keranjang.reduce((sum, item) => sum + item.qty, 0);
+            // Set total transaksi dengan pembulatan 2 desimal
+            totalTransaksi = parseFloat(total.toFixed(2));
+
+            // Update display dengan format yang aman
+            document.getElementById('totalItems').textContent = keranjang.reduce((sum, item) => sum + (parseInt(item.qty) || 0), 0);
             document.getElementById('totalAmount').textContent = formatRupiah(totalTransaksi);
             document.getElementById('btnBayar').disabled = keranjang.length === 0;
             hitungKembalian();
         }
 
         function updateQty(index, newQty) {
-            newQty = parseInt(newQty);
+            // Pastikan input adalah number
+            newQty = parseInt(newQty) || 1;
             if (newQty < 1) newQty = 1;
 
-            keranjang[index].qty = newQty;
-            keranjang[index].subtotal = keranjang[index].qty * keranjang[index].harga_jual;
-            updateKeranjangDisplay();
+            // Validasi index
+            if (index >= 0 && index < keranjang.length) {
+                const harga = parseFloat(keranjang[index].harga_jual) || 0;
+                keranjang[index].qty = newQty;
+                keranjang[index].subtotal = (newQty * harga).toFixed(2);
+                updateKeranjangDisplay();
+            }
         }
 
         function removeItem(index) {
