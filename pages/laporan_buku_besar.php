@@ -2,6 +2,7 @@
 session_start();
 require_once '../config/koneksi.php';
 require_once '../includes/functions.php';
+date_default_timezone_set('Asia/Jakarta');
 
 // Validasi akses
 if (!isset($_SESSION['pengguna'])) {
@@ -16,9 +17,27 @@ if (!function_exists('formatRupiah')) {
     }
 }
 
-// Get parameters
-$tanggal_awal = isset($_GET['tanggal_awal']) ? $_GET['tanggal_awal'] : date('Y-m-d');
-$tanggal_akhir = isset($_GET['tanggal_akhir']) ? $_GET['tanggal_akhir'] : date('Y-m-d');
+// Validasi dan format tanggal
+function validateDate($date)
+{
+    $d = DateTime::createFromFormat('Y-m-d', $date);
+    return $d && $d->format('Y-m-d') === $date;
+}
+
+// Get parameters dengan validasi
+$tanggal_awal = isset($_GET['tanggal_awal']) && validateDate($_GET['tanggal_awal'])
+    ? $_GET['tanggal_awal']
+    : date('Y-m-d');
+$tanggal_akhir = isset($_GET['tanggal_akhir']) && validateDate($_GET['tanggal_akhir'])
+    ? $_GET['tanggal_akhir']
+    : date('Y-m-d');
+
+// Debug tanggal
+echo "<!-- 
+Tanggal Debug:
+Awal: $tanggal_awal (" . gettype($tanggal_awal) . ")
+Akhir: $tanggal_akhir (" . gettype($tanggal_akhir) . ")
+-->";
 
 // Query untuk mengambil data transaksi buku besar
 $query = "
@@ -27,35 +46,95 @@ $query = "
         id_transaksi,
         jenis_transaksi as rekening,
         debit,
-        kredit
+        kredit,
+        keterangan
     FROM (
         -- Penjualan
         SELECT 
-            p.tanggal,
-            p.id_penjualan as id_transaksi,
+            tanggal,
+            id_penjualan as id_transaksi,
             'Penjualan' as jenis_transaksi,
-            p.total_harga as debit,
-            0 as kredit
-        FROM penjualan p
+            total_harga as debit,
+            0 as kredit,
+            CONCAT('Penjualan #', no_transaksi) as keterangan
+        FROM penjualan 
+        WHERE DATE(tanggal) BETWEEN ? AND ?
         
         UNION ALL
         
         -- Pembelian
         SELECT 
-            pb.tanggal,
-            pb.id_pembelian as id_transaksi,
+            tanggal,
+            id_pembelian as id_transaksi,
             'Pembelian' as jenis_transaksi,
             0 as debit,
-            pb.total_harga_beli as kredit
-        FROM pembelian pb
+            total_harga_beli as kredit,
+            CONCAT('Pembelian #', id_pembelian) as keterangan
+        FROM pembelian
+        WHERE DATE(tanggal) BETWEEN ? AND ?
     ) AS transaksi
-    WHERE tanggal BETWEEN ? AND ?
     ORDER BY tanggal ASC, id_transaksi ASC
 ";
 
-$stmt = $pdo->prepare($query);
-$stmt->execute([$tanggal_awal, $tanggal_akhir]);
-$transaksis = $stmt->fetchAll(PDO::FETCH_ASSOC);
+// Debug statement - tambahkan setelah query
+echo "<!-- 
+Debug Info:
+Tanggal Awal: $tanggal_awal
+Tanggal Akhir: $tanggal_akhir
+-->";
+
+// Debug statement sebelum execute query
+echo "<!-- 
+SQL Debug:
+" . str_replace('?', "'%s'", $query) . "
+Params: [$tanggal_awal, $tanggal_akhir, $tanggal_awal, $tanggal_akhir]
+-->";
+
+try {
+    $stmt = $pdo->prepare($query);
+    $params = [$tanggal_awal, $tanggal_akhir, $tanggal_awal, $tanggal_akhir];
+    $stmt->execute($params);
+    
+    // Tambahkan debug
+    echo "<!-- 
+    DEBUG SQL:
+    Query: {$query}
+    Params: " . json_encode($params) . "
+    Error Info: " . json_encode($stmt->errorInfo()) . "
+    -->";
+    
+    $transaksis = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Debug info
+    echo "<!-- 
+    Query Debug:
+    SQL: " . str_replace('?', "'%s'", $query) . "
+    Parameters: [$tanggal_awal, $tanggal_akhir, $tanggal_awal, $tanggal_akhir]
+    Results count: " . count($transaksis) . "
+    First record: " . print_r($transaksis[0] ?? 'No records', true) . "
+    -->";
+} catch (PDOException $e) {
+    echo "<!-- Error: " . $e->getMessage() . " -->";
+    $transaksis = [];
+}
+
+// Debug hasil detail
+echo "<!-- 
+Query Result Debug:
+Total Records: " . count($transaksis) . "
+Records Detail:
+";
+foreach ($transaksis as $idx => $t) {
+    echo "
+    Record #$idx:
+    - Tanggal: {$t['tanggal']}
+    - Jenis: {$t['rekening']}
+    - Debit: {$t['debit']}
+    - Kredit: {$t['kredit']}
+    - Keterangan: {$t['keterangan']}
+    ";
+}
+echo "-->";
 
 // Hitung saldo berjalan
 $saldo_debit = 0;
@@ -83,13 +162,62 @@ $saldo_kredit = 0;
         }
 
         @media print {
+            body {
+                background-color: white !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+
+            .report-container {
+                max-width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
             .no-print {
                 display: none !important;
             }
 
-            .print-only {
-                display: block !important;
+            .report-table {
+                border-collapse: collapse;
+                width: 100%;
             }
+
+            .report-table th,
+            .report-table td {
+                border: 1px solid #ddd !important;
+            }
+
+            @page {
+                size: A4 landscape;
+                margin: 1cm;
+            }
+        }
+
+        /* Custom scrollbar */
+        .overflow-x-auto::-webkit-scrollbar {
+            height: 8px;
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .overflow-x-auto::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .overflow-x-auto::-webkit-scrollbar-thumb {
+            background: #ddd;
+            border-radius: 4px;
+        }
+
+        .overflow-x-auto::-webkit-scrollbar-thumb:hover {
+            background: #cdcdcd;
+        }
+
+        /* Table highlight */
+        tr:hover td {
+            background-color: rgba(124, 58, 237, 0.05);
         }
     </style>
 </head>
@@ -166,20 +294,16 @@ $saldo_kredit = 0;
                                     <th class="px-6 py-3 text-xs font-medium text-gray-600 uppercase tracking-wider">Tanggal</th>
                                     <th class="px-6 py-3 text-xs font-medium text-gray-600 uppercase tracking-wider">Id Transaksi</th>
                                     <th class="px-6 py-3 text-xs font-medium text-gray-600 uppercase tracking-wider">Rekening</th>
+                                    <th class="px-6 py-3 text-xs font-medium text-gray-600 uppercase tracking-wider">Keterangan</th>
                                     <th class="px-6 py-3 text-xs font-medium text-gray-600 uppercase tracking-wider text-right">Debit</th>
                                     <th class="px-6 py-3 text-xs font-medium text-gray-600 uppercase tracking-wider text-right">Kredit</th>
                                     <th class="px-6 py-3 text-xs font-medium text-gray-600 uppercase tracking-wider text-center" colspan="2">Saldo</th>
-                                </tr>
-                                <tr class="bg-gray-50 border-b border-gray-100">
-                                    <th class="px-6 py-3" colspan="5"></th>
-                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">Debit</th>
-                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">Kredit</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
                                 <?php if (count($transaksis) === 0): ?>
                                     <tr>
-                                        <td colspan="7" class="px-6 py-10 text-center text-gray-500">
+                                        <td colspan="8" class="px-6 py-10 text-center text-gray-500">
                                             <div class="flex flex-col items-center">
                                                 <i class="fas fa-search text-gray-300 text-5xl mb-4"></i>
                                                 <p class="font-medium">Tidak ada data transaksi untuk periode yang dipilih</p>
@@ -202,6 +326,7 @@ $saldo_kredit = 0;
                                                     <?= htmlspecialchars($transaksi['rekening']) ?>
                                                 </span>
                                             </td>
+                                            <td class="px-6 py-3 text-sm text-gray-600"><?= htmlspecialchars($transaksi['keterangan']) ?></td>
                                             <td class="px-6 py-3 text-sm text-green-600 text-right font-medium"><?= $transaksi['debit'] > 0 ? formatRupiah($transaksi['debit']) : '-' ?></td>
                                             <td class="px-6 py-3 text-sm text-red-600 text-right font-medium"><?= $transaksi['kredit'] > 0 ? formatRupiah($transaksi['kredit']) : '-' ?></td>
                                             <td class="px-6 py-3 text-sm text-gray-900 text-right font-medium"><?= formatRupiah($saldo_debit) ?></td>
@@ -212,7 +337,7 @@ $saldo_kredit = 0;
                             </tbody>
                             <tfoot class="bg-purple-50">
                                 <tr>
-                                    <td colspan="3" class="px-6 py-4 text-sm font-semibold text-purple-800">TOTAL SALDO</td>
+                                    <td colspan="4" class="px-6 py-4 text-sm font-semibold text-purple-800">TOTAL SALDO</td>
                                     <td class="px-6 py-4 text-sm font-semibold text-green-600 text-right"><?= formatRupiah($saldo_debit) ?></td>
                                     <td class="px-6 py-4 text-sm font-semibold text-red-600 text-right"><?= formatRupiah($saldo_kredit) ?></td>
                                     <td colspan="2" class="px-6 py-4 text-right">
@@ -338,39 +463,17 @@ $saldo_kredit = 0;
                 border: 1px solid #ddd !important;
             }
 
-            .shadow-sm,
-            .shadow {
-                box-shadow: none !important;
-            }
-
-            .border {
-                border: 1px solid #ddd !important;
-            }
-
-            .rounded-xl {
-                border-radius: 0 !important;
-            }
-
             @page {
                 size: A4 landscape;
                 margin: 1cm;
             }
         }
 
-        /* Responsive styles */
-        @media (max-width: 768px) {
-            .grid {
-                grid-template-columns: 1fr !important;
-            }
-
-            .flex-1 {
-                width: 100%;
-            }
-        }
-
         /* Custom scrollbar */
         .overflow-x-auto::-webkit-scrollbar {
             height: 8px;
+            background: #f1f1f1;
+            border-radius: 4px;
         }
 
         .overflow-x-auto::-webkit-scrollbar-track {
@@ -387,12 +490,7 @@ $saldo_kredit = 0;
             background: #cdcdcd;
         }
 
-        /* Transitions */
-        .hover\:bg-gray-50 {
-            transition: background-color 0.2s ease-in-out;
-        }
-
-        /* Table row highlight */
+        /* Table highlight */
         tr:hover td {
             background-color: rgba(124, 58, 237, 0.05);
         }
